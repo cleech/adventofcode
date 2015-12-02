@@ -1,0 +1,12 @@
+[root]
+name = "adventofcode"
+version = "0.1.0"
+dependencies = [
+ "scan_fmt 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "scan_fmt"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
