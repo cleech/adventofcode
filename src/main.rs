@@ -12,34 +12,35 @@ fn main() {
 }
 
 fn try_main() -> io::Result<()> {
-    try!(run_from_file("input_1.txt", day1::main));
-    try!(run_from_file("input_2.txt", day2::main));
+    let s = try!(run_from_file("input_1.txt", day1::main));
+    s.iter().map(|s| println!("{}", s)).collect::<Vec<()>>();
+
+    let s = try!(run_from_file("input_2.txt", day2::main));
+    s.iter().map(|s| println!("{}", s)).collect::<Vec<()>>();
+
     Ok(())
 }
 
-fn run_from_file<F>(file: &str, it: F) -> io::Result<()>
-    where F: Fn(&str) -> io::Result<()>
+fn run_from_file<F>(file: &str, it: F) -> io::Result<Vec<String>>
+    where F: Fn(&str) -> Vec<String>
 {
     let mut f = try!(File::open(file));
     let mut input = String::new();
     try!(f.read_to_string(&mut input));
-    try!(it(&input));
-    Ok(())
+    Ok(it(&input))
 }
 
-// 74
-// 1795
-// 1586300
-// 3737498
+#[test]
+fn verify_my_answers() {
+    assert!(run_from_file("input_1.txt", day1::main).unwrap() == vec!["74", "1795"]);
+    assert!(run_from_file("input_2.txt", day2::main).unwrap() == vec!["1586300", "3737498"]);
+}
 
 mod day1 {
-    use std::io;
-    use std::io::prelude::*;
-
-    pub fn main(input: &str) -> io::Result<()> {
-        println!("{}", adv_one_one(&input));
-        println!("{}", adv_one_two(&input, -1));
-        Ok(())
+    pub fn main(input: &str) -> Vec<String> {
+        let s1 = adv_one_one(&input);
+        let s2 = adv_one_two(&input, -1);
+        vec![s1.to_string(), s2.to_string()]
     }
 
     fn inmap(c: char) -> i32 {
@@ -86,13 +87,10 @@ mod day1 {
 }
 
 mod day2 {
-    use std::io;
-    use std::io::prelude::*;
-
-    pub fn main(input: &str) -> io::Result<()> {
-        println!("{}", adv_two_one(&input));
-        println!("{}", adv_two_two(&input));
-        Ok(())
+    pub fn main(input: &str) -> Vec<String> {
+        let s1 = adv_two_one(&input);
+        let s2 = adv_two_two(&input);
+        vec![s1.to_string(), s2.to_string()]
     }
 
     fn adv_two_one(input: &str) -> u32 {
