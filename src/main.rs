@@ -32,8 +32,8 @@ fn run_from_file<F>(file: &str, it: F) -> io::Result<Vec<String>>
 
 #[test]
 fn verify_my_answers() {
-    assert!(run_from_file("input_1.txt", day1::main).unwrap() == vec!["74", "1795"]);
-    assert!(run_from_file("input_2.txt", day2::main).unwrap() == vec!["1586300", "3737498"]);
+    assert_eq!(run_from_file("input_1.txt", day1::main).unwrap(), vec!["74", "1795"]);
+    assert_eq!(run_from_file("input_2.txt", day2::main).unwrap(), vec!["1586300", "3737498"]);
 }
 
 mod day1 {
@@ -57,15 +57,15 @@ mod day1 {
 
     #[test]
     fn one_one_test() {
-        assert!(adv_one_one("(())") == 0);
-        assert!(adv_one_one("()()") == 0);
-        assert!(adv_one_one("(((") == 3);
-        assert!(adv_one_one("(()(()(") == 3);
-        assert!(adv_one_one("))(((((") == 3);
-        assert!(adv_one_one("())") == -1);
-        assert!(adv_one_one("))(") == -1);
-        assert!(adv_one_one(")))") == -3);
-        assert!(adv_one_one(")())())") == -3);
+        assert_eq!(adv_one_one("(())"), 0);
+        assert_eq!(adv_one_one("()()"), 0);
+        assert_eq!(adv_one_one("((("), 3);
+        assert_eq!(adv_one_one("(()(()("), 3);
+        assert_eq!(adv_one_one("))((((("), 3);
+        assert_eq!(adv_one_one("())"), -1);
+        assert_eq!(adv_one_one("))("), -1);
+        assert_eq!(adv_one_one(")))"), -3);
+        assert_eq!(adv_one_one(")())())"), -3);
     }
 
     fn adv_one_two(input: &str, target: i32) -> i32 {
@@ -81,8 +81,8 @@ mod day1 {
 
     #[test]
     fn one_two_test() {
-        assert!(adv_one_two(")", -1) == 1);
-        assert!(adv_one_two("()())", -1) == 5);
+        assert_eq!(adv_one_two(")", -1), 1);
+        assert_eq!(adv_one_two("()())", -1), 5);
     }
 }
 
@@ -110,8 +110,8 @@ mod day2 {
 
     #[test]
     fn two_one_test() {
-        assert!(adv_two_one("2x3x4") == 58);
-        assert!(adv_two_one("1x1x10") == 43);
+        assert_eq!(adv_two_one("2x3x4"), 58);
+        assert_eq!(adv_two_one("1x1x10"), 43);
     }
 
     fn adv_two_two(input: &str) -> u32 {
@@ -132,7 +132,7 @@ mod day2 {
 
     #[test]
     fn two_two_test() {
-        assert!(adv_two_two("2x3x4") == 34);
-        assert!(adv_two_two("1x1x10") == 14);
+        assert_eq!(adv_two_two("2x3x4"), 34);
+        assert_eq!(adv_two_two("1x1x10"), 14);
     }
 }
