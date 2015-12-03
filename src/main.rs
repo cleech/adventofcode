@@ -1,5 +1,4 @@
 #![feature(iter_arith)] // sum is not stable
-#![feature(vec_push_all)]
 
 use std::io;
 use std::fs::File;

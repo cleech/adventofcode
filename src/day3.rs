@@ -1,3 +1,5 @@
+use std::iter;
+
 extern crate itertools;
 use self::itertools::Itertools;
 
@@ -18,19 +20,16 @@ fn directions(c: char) -> (i32, i32) {
 }
 
 fn house_count(input: &str) -> usize {
-    let mut vec = input.chars()
-                       .map(directions)
-                       .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
-                           *x += dx;
-                           *y += dy;
-                           Some((*x, *y))
-                       })
-                       .collect::<Vec<(i32, i32)>>();
-    // .inspect(|&(x, y)| println!("{}, {}", x, y))
-    vec.push((0, 0));
-    vec.sort();
-    vec.dedup();
-    vec.len()
+    input.chars()
+         .map(directions)
+         .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
+             *x += dx;
+             *y += dy;
+             Some((*x, *y))
+         })
+         .chain(iter::once((0, 0)))
+         .unique()
+         .count()
 }
 
 #[test]
@@ -41,40 +40,24 @@ fn test_house_count() {
 }
 
 fn robo_santa(input: &str) -> usize {
-    let map = input.chars()
-                   .map(directions)
-                   .scan((0 as usize, 0 as i32, 0 as i32),
-                         |&mut (ref mut index, _, _), (dx, dy)| {
-                             *index += 1;
-                             Some((*index, dx, dy))
-                         });
+    let odd = input.chars().step(2);
+    let even = input.chars().skip(1).step(2);
 
-    let (even, odd): (Vec<(usize, i32, i32)>, Vec<(usize, i32, i32)>) =
-        map.partition(|&(index, _, _)| index % 2 == 0);
-
-    let mut vec = even.iter()
-                      .map(|&(_, x, y)| (x, y))
-                      .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
-                          *x += dx;
-                          *y += dy;
-                          Some((*x, *y))
-                      })
-                      .collect::<Vec<(i32, i32)>>();
-
-    let vec2 = odd.iter()
-                  .map(|&(_, x, y)| (x, y))
+    odd.map(directions)
+       .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
+           *x += dx;
+           *y += dy;
+           Some((*x, *y))
+       })
+       .chain(even.map(directions)
                   .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
                       *x += dx;
                       *y += dy;
                       Some((*x, *y))
-                  })
-                  .collect::<Vec<(i32, i32)>>();
-
-    vec.push_all(&vec2);
-    vec.push((0, 0));
-    vec.sort();
-    vec.dedup();
-    vec.len()
+                  }))
+       .chain(iter::once((0, 0)))
+       .unique()
+       .count()
 }
 
 #[test]
