@@ -19,17 +19,21 @@ fn directions(c: char) -> (i32, i32) {
     }
 }
 
+fn visit_houses<'a>(input: &'a str) -> Box<Iterator<Item = (i32, i32)> + 'a> {
+    Box::new(input.chars()
+                  .map(directions)
+                  .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
+                      *x += dx;
+                      *y += dy;
+                      Some((*x, *y))
+                  })
+                  .chain(iter::once((0, 0))))
+}
+
 fn house_count(input: &str) -> usize {
-    input.chars()
-         .map(directions)
-         .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
-             *x += dx;
-             *y += dy;
-             Some((*x, *y))
-         })
-         .chain(iter::once((0, 0)))
-         .unique()
-         .count()
+    visit_houses(input)
+        .unique()
+        .count()
 }
 
 #[test]
@@ -40,24 +44,13 @@ fn test_house_count() {
 }
 
 fn robo_santa(input: &str) -> usize {
-    let odd = input.chars().step(2);
-    let even = input.chars().skip(1).step(2);
+    let odd: String = input.chars().step(2).collect();
+    let even: String = input.chars().skip(1).step(2).collect();
 
-    odd.map(directions)
-       .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
-           *x += dx;
-           *y += dy;
-           Some((*x, *y))
-       })
-       .chain(even.map(directions)
-                  .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
-                      *x += dx;
-                      *y += dy;
-                      Some((*x, *y))
-                  }))
-       .chain(iter::once((0, 0)))
-       .unique()
-       .count()
+    return visit_houses(&odd)
+               .chain(visit_houses(&even))
+               .unique()
+               .count();
 }
 
 #[test]
