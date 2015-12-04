@@ -17,7 +17,7 @@ fn find_number(key: &str, zeros: usize) -> u32 {
         let output = sh.result_str();
         sh.reset();
 
-        if &output[..zeros] == &"0000000000"[..zeros] {
+        if &output[..zeros] == format!("{:01$}", 0, zeros) {
             return n;
         }
     }
@@ -25,6 +25,7 @@ fn find_number(key: &str, zeros: usize) -> u32 {
 }
 
 #[test]
+#[ignore]
 fn test_find_number() {
     assert_eq!(find_number("abcdef", 5), 609043);
     assert_eq!(find_number("pqrstuv", 5), 1048970);

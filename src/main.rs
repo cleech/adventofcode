@@ -49,5 +49,10 @@ fn verify_my_answers() {
                vec!["1586300", "3737498"]);
     assert_eq!(run_from_file("data/input_3.txt", day3::main).unwrap(),
                vec!["2565", "2639"]);
+}
+
+#[test]
+#[ignore]
+fn too_slow_for_default_tests() {
     assert_eq!(day4::main("yzbqklnj"), vec!["282749", "9962624"]);
 }
