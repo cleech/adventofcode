@@ -9,19 +9,20 @@ pub fn main(input: &str) -> Vec<String> {
 }
 
 fn find_number(key: &str, zeros: usize) -> u32 {
-    let mut sh = Md5::new();
-    for n in 1.. {
-        let input = format!("{}{}", key, n);
+    let mut md5 = Md5::new();
+    let prefix = format!("{:01$}", 0, zeros);
 
-        sh.input_str(&input);
-        let output = sh.result_str();
-        sh.reset();
-
-        if &output[..zeros] == format!("{:01$}", 0, zeros) {
-            return n;
-        }
-    }
-    0
+    (1..)
+        .map(|n| {
+            let input = format!("{}{:?}", key, n);
+            md5.reset();
+            md5.input_str(&input);
+            let output = md5.result_str();
+            (n, output)
+        })
+        .find(|&(_, ref output)| output.starts_with(&prefix))
+        .unwrap()
+        .0
 }
 
 #[test]
