@@ -19,26 +19,23 @@ fn directions(c: char) -> (i32, i32) {
     }
 }
 
-fn visit_houses<'a>(input: &'a str) -> Box<Iterator<Item = (i32, i32)> + 'a> {
-    Box::new(input.chars()
-                  .map(directions)
+fn visit_houses<'a>(input: Box<Iterator<Item = char> + 'a>) -> Box<Iterator<Item = (i32, i32)> + 'a> {
+    Box::new(input.map(directions)
                   .scan((0, 0), |&mut (ref mut x, ref mut y), (dx, dy)| {
                       *x += dx;
                       *y += dy;
                       Some((*x, *y))
                   }))
-    // .chain(iter::once((0, 0))))
 }
 
 fn multi_santa(input: &str, how_many: usize) -> usize {
-    let santas = (0..how_many)
-                     .map(|n| input.chars().skip(n).step(how_many).collect())
-                     .collect::<Vec<String>>();
-    return santas.iter()
-                 .fold(Box::new(iter::once((0, 0))) as Box<Iterator<Item = (i32, i32)>>,
-                       |itr, directions| Box::new(itr.chain(visit_houses(&directions))))
-                 .unique()
-                 .count();
+    return (0..how_many)
+               .map(|n| Box::new(input.chars().skip(n).step(how_many)))
+               .map(|directions| visit_houses(directions))
+               .fold(Box::new(iter::once((0, 0))) as Box<Iterator<Item = (i32, i32)>>,
+                     |itr, next_santa| Box::new(itr.chain(next_santa)))
+               .unique()
+               .count();
 }
 
 #[test]
