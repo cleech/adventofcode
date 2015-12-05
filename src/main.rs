@@ -62,7 +62,7 @@ fn verify_my_answers() {
     assert_eq!(run_from_file("data/input_3.txt", day3::main).unwrap(),
                ["2565", "2639"]);
     assert_eq!(run_from_file("data/input_5.txt", day5::main).unwrap(),
-               ["236"]);
+               ["236", "51"]);
 }
 
 #[test]

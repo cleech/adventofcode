@@ -1,11 +1,12 @@
 use std::str::pattern::Pattern;
 
-extern crate itertools;
-use self::itertools::Itertools;
+extern crate pcre;
+use self::pcre::Pcre;
 
 pub fn main(input: &str) -> Vec<String> {
     let s1 = nice_count(&input);
-    vec![s1.to_string()]
+    let s2 = new_nice_count(&input);
+    vec![s1.to_string(), s2.to_string()]
 }
 
 fn nice_count(input: &str) -> usize {
@@ -41,12 +42,21 @@ fn test_nice_string() {
 }
 
 fn new_nice_count(input: &str) -> usize {
+    let pairs = Pcre::compile(r"(..).*\1").unwrap();
+    let sandwich = Pcre::compile(r"(.)[^\1]\1").unwrap();
+
     input.lines()
          .filter(|line| {
-             line.chars()
-                 .fold((false, None),
-                       |(double, last), c| (double || last == Some(c), Some(c)))
-                 .0
+             match pairs.exec(line) {
+                 None => false,
+                 Some(_) => true,
+             }
+         })
+         .filter(|line| {
+             match sandwich.exec(line) {
+                 None => false,
+                 Some(_) => true,
+             }
          })
          .count()
 }
