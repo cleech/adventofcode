@@ -1,5 +1,8 @@
 use std::str::pattern::Pattern;
 
+extern crate itertools;
+use self::itertools::Itertools;
+
 pub fn main(input: &str) -> Vec<String> {
     let s1 = nice_count(&input);
     vec![s1.to_string()]
@@ -35,4 +38,23 @@ fn test_nice_string() {
     assert_eq!(nice_count("jchzalrnumimnmhp"), 0);
     assert_eq!(nice_count("haegwjzuvuyypxyu"), 0);
     assert_eq!(nice_count("dvszwmarrgswjxmb"), 0);
+}
+
+fn new_nice_count(input: &str) -> usize {
+    input.lines()
+         .filter(|line| {
+             line.chars()
+                 .fold((false, None),
+                       |(double, last), c| (double || last == Some(c), Some(c)))
+                 .0
+         })
+         .count()
+}
+
+#[test]
+fn test_new_nice_string() {
+    assert_eq!(new_nice_count("qjhvhtzxzqqjkmpb"), 1);
+    assert_eq!(new_nice_count("xxyxx"), 1);
+    assert_eq!(new_nice_count("uurcxstgmygtbstg"), 0);
+    assert_eq!(new_nice_count("eodomkazucvgmuy"), 0);
 }

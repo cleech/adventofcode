@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Chris Leech <leech@pobox.com>"]
 
 [dependencies]
-scan_fmt = "0.1.1"
-itertools = "0.4.3"
-rust-crypto = "0.2.34"
+scan_fmt = "0.1"
+itertools = "0.4"
+rust-crypto = "0.2"
+regex = "0.1"
