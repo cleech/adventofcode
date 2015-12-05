@@ -29,7 +29,7 @@ fn test_floor_from_inst() {
     assert_eq!(floor_from_instructions(")())())"), -3);
 }
 
-fn fist_instruction_to_reach(input: &str, target_floor: i32) -> i32 {
+fn fist_instruction_to_reach(input: &str, target_floor: i32) -> usize {
     input.chars()
          .map(instruction_map)
          .scan(0, |floor, direction| {
@@ -37,7 +37,8 @@ fn fist_instruction_to_reach(input: &str, target_floor: i32) -> i32 {
              Some(*floor)
          })
          .position(|floor| floor == target_floor)
-         .unwrap() as i32 + 1
+         .map(|p| p + 1)
+         .unwrap()
 }
 
 #[test]

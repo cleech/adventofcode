@@ -1,4 +1,5 @@
 #![feature(iter_arith)] // sum is not stable
+#![feature(pattern)]
 
 use std::io;
 use std::fs::File;
@@ -11,23 +12,34 @@ mod day1;
 mod day2;
 mod day3;
 mod day4;
+mod day5;
 
 fn main() {
     try_main().unwrap()
 }
 
+fn print_results(day: usize, results: Vec<String>) {
+    println!("Day {}", day);
+    for output in results {
+        println!("  {}", output);
+    }
+}
+
 fn try_main() -> io::Result<()> {
     let s = try!(run_from_file("data/input_1.txt", day1::main));
-    s.iter().map(|s| println!("{}", s)).collect::<Vec<()>>();
+    print_results(1, s);
 
     let s = try!(run_from_file("data/input_2.txt", day2::main));
-    s.iter().map(|s| println!("{}", s)).collect::<Vec<()>>();
+    print_results(2, s);
 
     let s = try!(run_from_file("data/input_3.txt", day3::main));
-    s.iter().map(|s| println!("{}", s)).collect::<Vec<()>>();
+    print_results(3, s);
 
     let s = day4::main("yzbqklnj");
-    s.iter().map(|s| println!("{}", s)).collect::<Vec<()>>();
+    print_results(4, s);
+
+    let s = try!(run_from_file("data/input_5.txt", day5::main));
+    print_results(5, s);
 
     Ok(())
 }
@@ -49,6 +61,8 @@ fn verify_my_answers() {
                ["1586300", "3737498"]);
     assert_eq!(run_from_file("data/input_3.txt", day3::main).unwrap(),
                ["2565", "2639"]);
+    assert_eq!(run_from_file("data/input_5.txt", day5::main).unwrap(),
+               ["236"]);
 }
 
 #[test]
