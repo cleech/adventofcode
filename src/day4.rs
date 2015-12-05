@@ -14,13 +14,12 @@ fn find_number(key: &str, zeros: usize) -> u32 {
 
     (1..)
         .map(|n| {
-            let input = format!("{}{:?}", key, n);
             md5.reset();
-            md5.input_str(&input);
-            let output = md5.result_str();
-            (n, output)
+            md5.input_str(&key);
+            md5.input_str(&n.to_string());
+            (n, md5.result_str())
         })
-        .find(|&(_, ref output)| output.starts_with(&prefix))
+        .find(|&(_, ref hash)| hash.starts_with(&prefix))
         .unwrap()
         .0
 }
