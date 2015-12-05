@@ -1,5 +1,4 @@
 #![feature(iter_arith)] // sum is not stable
-#![feature(pattern)]
 
 use std::io;
 use std::fs::File;

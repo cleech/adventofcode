@@ -1,5 +1,3 @@
-use std::str::pattern::Pattern;
-
 extern crate pcre;
 use self::pcre::Pcre;
 
@@ -10,25 +8,14 @@ pub fn main(input: &str) -> Vec<String> {
 }
 
 fn nice_count(input: &str) -> usize {
+    let vowels = Pcre::compile(r"[aeiou]").unwrap();
+    let has_double = Pcre::compile(r"(.)\1").unwrap();
+    let bad_pairs = Pcre::compile(r"(ab|cd|pq|xy)").unwrap();
+
     input.lines()
-         .filter(|line| line.chars().filter(|c| c.is_contained_in("aeiou")).count() >= 3)
-         .filter(|line| {
-             line.chars()
-                 .fold((false, None),
-                       |(double, last), c| (double || last == Some(c), Some(c)))
-                 .0
-         })
-         .filter(|line| {
-             line.chars()
-                 .fold((true, None), |(no_badpair, last), c| {
-                     (no_badpair && (last != Some('x') || Some(c) != Some('y')) &&
-                      (last != Some('a') || Some(c) != Some('b')) &&
-                      (last != Some('c') || Some(c) != Some('d')) &&
-                      (last != Some('p') || Some(c) != Some('q')),
-                      Some(c))
-                 })
-                 .0
-         })
+         .filter(|line| vowels.matches(line).count() >= 3)
+         .filter(|line| has_double.exec(line).is_some())
+         .filter(|line| bad_pairs.exec(line).is_none())
          .count()
 }
 
@@ -46,18 +33,8 @@ fn new_nice_count(input: &str) -> usize {
     let sandwich = Pcre::compile(r"(.)[^\1]\1").unwrap();
 
     input.lines()
-         .filter(|line| {
-             match pairs.exec(line) {
-                 None => false,
-                 Some(_) => true,
-             }
-         })
-         .filter(|line| {
-             match sandwich.exec(line) {
-                 None => false,
-                 Some(_) => true,
-             }
-         })
+         .filter(|line| pairs.exec(line).is_some())
+         .filter(|line| sandwich.exec(line).is_some())
          .count()
 }
 
