@@ -6,9 +6,10 @@ pub fn main(input: &str) -> Vec<String> {
 
 fn paper(input: &str) -> u32 {
     fn paper_for_present(l: u32, w: u32, h: u32) -> u32 {
-        let sides = vec![l * w, w * h, h * l];
-        let extra = sides.iter().min().unwrap();
-        2 * l * w + 2 * w * h + 2 * h * l + extra
+        let mut sides = [l * w, w * h, h * l];
+        sides.sort();
+        let extra = sides[0];
+        2 * sides.iter().sum::<u32>() + extra
     }
 
     input.lines()
@@ -27,8 +28,9 @@ fn test_paper() {
 
 fn ribbon(input: &str) -> u32 {
     fn ribbon_for_present(l: u32, w: u32, h: u32) -> u32 {
-        let sides = vec![2 * l + 2 * w, 2 * w + 2 * h, 2 * h + 2 * l];
-        let ribbon = sides.iter().min().unwrap();
+        let mut sides = [2 * l + 2 * w, 2 * w + 2 * h, 2 * h + 2 * l];
+        sides.sort();
+        let ribbon = sides[0];
         let bow = l * w * h;
         ribbon + bow
     }
