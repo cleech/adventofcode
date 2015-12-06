@@ -1,4 +1,5 @@
 #![feature(iter_arith)] // sum is not stable
+#![feature(box_syntax)]
 
 use std::io;
 use std::fs::File;
@@ -12,6 +13,7 @@ mod day2;
 mod day3;
 mod day4;
 mod day5;
+mod day6;
 
 fn main() {
     try_main().unwrap()
@@ -39,6 +41,9 @@ fn try_main() -> io::Result<()> {
 
     let s = try!(run_from_file("data/input_5.txt", day5::main));
     print_results(5, s);
+
+    let s = try!(run_from_file("data/input_6.txt", day6::main));
+    print_results(6, s);
 
     Ok(())
 }
