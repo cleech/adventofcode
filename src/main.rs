@@ -7,13 +7,13 @@ use std::io::prelude::*;
 
 #[macro_use]
 extern crate scan_fmt;
-
 mod day1;
 mod day2;
 mod day3;
 mod day4;
 mod day5;
 mod day6;
+mod day7;
 
 fn main() {
     try_main().unwrap()
@@ -44,6 +44,9 @@ fn try_main() -> io::Result<()> {
 
     let s = try!(run_from_file("data/input_6.txt", day6::main));
     print_results(6, s);
+
+    let s = try!(run_from_file("data/input_7.txt", day7::main));
+    print_results(7, s);
 
     Ok(())
 }
