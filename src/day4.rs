@@ -13,15 +13,13 @@ fn find_number(key: &str, zeros: usize) -> u32 {
     let prefix = format!("{:01$}", 0, zeros);
 
     (1..)
-        .map(|n| {
+        .find(|n| {
             md5.reset();
             md5.input_str(&key);
             md5.input_str(&n.to_string());
-            (n, md5.result_str())
+            md5.result_str().starts_with(&prefix)
         })
-        .find(|&(_, ref hash)| hash.starts_with(&prefix))
         .unwrap()
-        .0
 }
 
 #[test]

@@ -30,7 +30,7 @@ fn test_nice_string() {
 
 fn new_nice_count(input: &str) -> usize {
     let pairs = Pcre::compile(r"(..).*\1").unwrap();
-    let sandwich = Pcre::compile(r"(.)[^\1]\1").unwrap();
+    let sandwich = Pcre::compile(r"(.).\1").unwrap();
 
     input.lines()
          .filter(|line| pairs.exec(line).is_some())
