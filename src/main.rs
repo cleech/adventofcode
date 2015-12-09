@@ -7,6 +7,7 @@ use std::io::prelude::*;
 
 #[macro_use]
 extern crate scan_fmt;
+
 mod day1;
 mod day2;
 mod day3;
@@ -14,6 +15,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 
 fn main() {
     try_main().unwrap()
@@ -48,6 +50,9 @@ fn try_main() -> io::Result<()> {
     let s = try!(run_from_file("data/input_7.txt", day7::main));
     print_results(7, s);
 
+    let s = try!(run_from_file("data/input_8.txt", day8::main));
+    print_results(8, s);
+
     Ok(())
 }
 
@@ -70,6 +75,10 @@ fn verify_my_answers() {
                ["2565", "2639"]);
     assert_eq!(run_from_file("data/input_5.txt", day5::main).unwrap(),
                ["236", "51"]);
+    assert_eq!(run_from_file("data/input_7.txt", day7::main).unwrap(),
+               ["956", "40149"]);
+    assert_eq!(run_from_file("data/input_8.txt", day8::main).unwrap(),
+               ["1350", "2085"]);
 }
 
 #[test]
