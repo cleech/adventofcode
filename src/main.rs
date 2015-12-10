@@ -17,6 +17,7 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+mod day10;
 
 fn main() {
     try_main().unwrap()
@@ -56,6 +57,9 @@ fn try_main() -> io::Result<()> {
 
     let s = try!(run_from_file("data/input_9.txt", day9::main));
     print_results(9, s);
+
+    let s = day10::main("3113322113");
+    print_results(10, s);
 
     Ok(())
 }
