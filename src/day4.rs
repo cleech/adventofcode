@@ -3,8 +3,8 @@ use self::crypto::digest::Digest;
 use self::crypto::md5::Md5;
 
 pub fn main(input: &str) -> Vec<String> {
-    let s1 = find_number(input, 5);
-    let s2 = find_number(input, 6);
+    let s1 = find_number(input.trim(), 5);
+    let s2 = find_number(input.trim(), 6);
     vec![s1.to_string(), s2.to_string()]
 }
 
