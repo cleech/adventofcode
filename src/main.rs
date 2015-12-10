@@ -16,6 +16,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 fn main() {
     try_main().unwrap()
@@ -53,6 +54,9 @@ fn try_main() -> io::Result<()> {
     let s = try!(run_from_file("data/input_8.txt", day8::main));
     print_results(8, s);
 
+    let s = try!(run_from_file("data/input_9.txt", day9::main));
+    print_results(9, s);
+
     Ok(())
 }
 
@@ -66,6 +70,7 @@ fn run_from_file<F>(file: &str, it: F) -> io::Result<Vec<String>>
 }
 
 #[test]
+#[ignore]
 fn verify_my_answers() {
     assert_eq!(run_from_file("data/input_1.txt", day1::main).unwrap(),
                ["74", "1795"]);
@@ -73,16 +78,15 @@ fn verify_my_answers() {
                ["1586300", "3737498"]);
     assert_eq!(run_from_file("data/input_3.txt", day3::main).unwrap(),
                ["2565", "2639"]);
+    assert_eq!(day4::main("yzbqklnj"), ["282749", "9962624"]);
     assert_eq!(run_from_file("data/input_5.txt", day5::main).unwrap(),
                ["236", "51"]);
+    assert_eq!(run_from_file("data/input_6.txt", day6::main).unwrap(),
+               ["569999", "17836115"]);
     assert_eq!(run_from_file("data/input_7.txt", day7::main).unwrap(),
                ["956", "40149"]);
     assert_eq!(run_from_file("data/input_8.txt", day8::main).unwrap(),
                ["1350", "2085"]);
-}
-
-#[test]
-#[ignore]
-fn too_slow_for_default_tests() {
-    assert_eq!(day4::main("yzbqklnj"), ["282749", "9962624"]);
+    assert_eq!(run_from_file("data/input_9.txt", day9::main).unwrap(),
+               ["117", "909"]);
 }

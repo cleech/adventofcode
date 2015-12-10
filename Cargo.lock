@@ -4,6 +4,7 @@ version = "0.1.0"
 dependencies = [
  "itertools 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "pcre 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "permutohedron 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-crypto 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "scan_fmt 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -103,6 +104,11 @@ dependencies = [
  "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libpcre-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "permutohedron"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "pkg-config"
