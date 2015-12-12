@@ -37,8 +37,7 @@ fn fist_instruction_to_reach(input: &str, target_floor: i32) -> usize {
              Some(*floor)
          })
          .position(|floor| floor == target_floor)
-         .map(|p| p + 1)
-         .unwrap()
+         .unwrap() + 1
 }
 
 #[test]
