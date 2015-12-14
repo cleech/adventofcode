@@ -24,8 +24,9 @@ mod day10;
 mod day11;
 mod day12;
 mod day13;
+mod day14;
 
-const LATEST: u8 = 13;
+const LATEST: u8 = 14;
 
 fn main() {
     let args = App::new("AdventOfCode")
@@ -75,6 +76,7 @@ fn run_one(day: u8) -> io::Result<Vec<String>> {
         11 => day11::main,
         12 => day12::main,
         13 => day13::main,
+        14 => day14::main,
         _ => panic!("not there yet"),
     };
 
@@ -108,4 +110,8 @@ fn verify_my_answers() {
     assert_eq!(run_one(8).unwrap(), ["1350", "2085"]);
     assert_eq!(run_one(9).unwrap(), ["117", "909"]);
     assert_eq!(run_one(10).unwrap(), ["439880", "6230578"]);
+    assert_eq!(run_one(11).unwrap(), ["vzbxxyzz", "vzcaabcc"]);
+    assert_eq!(run_one(12).unwrap(),  ["191164","87842"]);
+    assert_eq!(run_one(13).unwrap(), ["733", "725"]);
+    assert_eq!(run_one(14).unwrap(), ["2640", "1102"]);
 }

@@ -41,10 +41,8 @@ fn _part_2(data: &Value) -> i64 {
         &Value::Array(ref vec) => vec.iter().map(|v| _part_2(v)).sum(),
         &Value::Object(ref bt) => {
             if bt.iter().any(|(_, v)| v.as_string().map(|s| s == "red").unwrap_or(false)) {
-                println!("skipping {:?}", data);
                 0
             } else {
-                println!("no red in? {:?}", data);
                 bt.iter().map(|(_, v)| _part_2(v)).sum()
             }
         }
