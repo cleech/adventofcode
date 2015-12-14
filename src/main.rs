@@ -1,6 +1,5 @@
 #![feature(iter_arith)] // sum is not stable
 #![feature(box_syntax)]
-//#![feature(convert)]
 
 use std::io;
 use std::fs::File;
@@ -23,7 +22,7 @@ mod day8;
 mod day9;
 mod day10;
 mod day11;
-// mod day 12;
+mod day12;
 mod day13;
 
 const LATEST: u8 = 13;
@@ -74,7 +73,7 @@ fn run_one(day: u8) -> io::Result<Vec<String>> {
         9 => day9::main,
         10 => day10::main,
         11 => day11::main,
-        12 => panic!("not there yet"),
+        12 => day12::main,
         13 => day13::main,
         _ => panic!("not there yet"),
     };
