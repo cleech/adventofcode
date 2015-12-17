@@ -1,9 +1,11 @@
 extern crate pcre;
 use self::pcre::Pcre;
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = nice_count(&input);
-    let s2 = new_nice_count(&input);
+const DATA: &'static str = include_str!("../data/input_5.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = nice_count(DATA);
+    let s2 = new_nice_count(DATA);
     vec![s1.to_string(), s2.to_string()]
 }
 

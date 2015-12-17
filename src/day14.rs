@@ -2,9 +2,11 @@ use std::collections::HashMap;
 use std::iter::Iterator;
 use std::cmp;
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = race(&input, 2503);
-    let s2 = race_2(&input, 2503);
+const DATA: &'static str = include_str!("../data/input_14.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = race(DATA, 2503);
+    let s2 = race_2(DATA, 2503);
     vec![s1.to_string(), s2.to_string()]
 }
 

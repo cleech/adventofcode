@@ -3,9 +3,11 @@ use std::iter;
 extern crate itertools;
 use self::itertools::Itertools;
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = multi_santa(&input, 1);
-    let s2 = multi_santa(&input, 2);
+const DATA: &'static str = include_str!("../data/input_3.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = multi_santa(DATA, 1);
+    let s2 = multi_santa(DATA, 2);
     vec![s1.to_string(), s2.to_string()]
 }
 

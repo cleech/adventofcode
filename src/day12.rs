@@ -1,9 +1,11 @@
 extern crate serde_json;
 use self::serde_json::Value;
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = read_json(input);
-    let s2 = part_2(input);
+const DATA: &'static str = include_str!("../data/input_12.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = read_json(DATA);
+    let s2 = part_2(DATA);
     vec![s1.to_string(), s2.to_string()]
 }
 

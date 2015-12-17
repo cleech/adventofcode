@@ -1,6 +1,8 @@
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = floor_from_instructions(&input);
-    let s2 = fist_instruction_to_reach(&input, -1);
+const DATA: &'static str = include_str!("../data/input_1.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = floor_from_instructions(DATA);
+    let s2 = fist_instruction_to_reach(DATA, -1);
     vec![s1.to_string(), s2.to_string()]
 }
 

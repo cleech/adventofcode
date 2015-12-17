@@ -1,9 +1,11 @@
 extern crate itertools;
 use self::itertools::{Itertools, Unfold};
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = look_and_say_iterations(input, 40).len();
-    let s2 = look_and_say_iterations(input, 50).len();
+const DATA: &'static str = include_str!("../data/input_10.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = look_and_say_iterations(DATA, 40).len();
+    let s2 = look_and_say_iterations(DATA, 50).len();
     vec![s1.to_string(), s2.to_string()]
 }
 

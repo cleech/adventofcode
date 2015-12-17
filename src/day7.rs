@@ -229,8 +229,10 @@ fn test_circuit() {
     assert_eq!(c.eval(&Wire("y".to_string())), Some(456));
 }
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = run_circuit(input, "a");
-    let s2 = part2(input, "a", "b", 956);
+const DATA: &'static str = include_str!("../data/input_7.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = run_circuit(DATA, "a");
+    let s2 = part2(DATA, "a", "b", 956);
     vec![s1.to_string(), s2.to_string()]
 }

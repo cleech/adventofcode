@@ -3,8 +3,10 @@ use std::ops::Not;
 extern crate itertools;
 use self::itertools::Itertools;
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = next_password(input.trim());
+const DATA: &'static str = include_str!("../data/input_11.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = next_password(DATA.trim());
     let s2 = next_password(&s1);
     vec![s1, s2]
 }

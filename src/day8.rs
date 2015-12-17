@@ -2,9 +2,11 @@ extern crate itertools;
 use self::itertools::{Itertools, Unfold};
 use std::iter;
 
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = part1(input);
-    let s2 = part2(input);
+const DATA: &'static str = include_str!("../data/input_8.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = part1(DATA);
+    let s2 = part2(DATA);
     vec![s1.to_string(), s2.to_string()]
 }
 

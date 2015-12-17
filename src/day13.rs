@@ -2,8 +2,10 @@ use std::collections::{HashSet, HashMap};
 
 extern crate permutohedron;
 
-pub fn main(input: &str) -> Vec<String> {
-    let mut table = Table::build(&input);
+const DATA: &'static str = include_str!("../data/input_13.txt");
+
+pub fn main() -> Vec<String> {
+    let mut table = Table::build(DATA);
     let s1 = table.find_best_setting();
     table.add_me();
     let s2 = table.find_best_setting();
@@ -110,6 +112,5 @@ fn test_day9() {
                  "David would gain 41 happiness units by sitting next to Carol."]
                     .join("\n");
     let table = Table::build(&rules);
-    let setting = ["David", "Alice", "Bob", "Carol"];
     assert_eq!(table.find_best_setting(), 330);
 }

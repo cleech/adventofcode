@@ -1,6 +1,8 @@
-pub fn main(input: &str) -> Vec<String> {
-    let s1 = paper(&input);
-    let s2 = ribbon(&input);
+const DATA: &'static str = include_str!("../data/input_2.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = paper(DATA);
+    let s2 = ribbon(DATA);
     vec![s1.to_string(), s2.to_string()]
 }
 

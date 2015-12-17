@@ -4,8 +4,10 @@ use std::collections::{HashSet, HashMap};
 
 extern crate permutohedron;
 
-pub fn main(input: &str) -> Vec<String> {
-    let map = RouteMap::build(&input);
+const DATA: &'static str = include_str!("../data/input_9.txt");
+
+pub fn main() -> Vec<String> {
+    let map = RouteMap::build(DATA);
     let s1 = map.find_shortest_route();
     let s2 = map.find_longest_route();
     vec![s1.to_string(), s2.to_string()]

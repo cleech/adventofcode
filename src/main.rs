@@ -2,11 +2,11 @@
 #![feature(box_syntax)]
 
 use std::io;
-use std::fs::File;
-use std::io::prelude::*;
 
 #[macro_use]
 extern crate scan_fmt;
+#[macro_use]
+extern crate nom;
 
 extern crate clap;
 use clap::{Arg, App};
@@ -25,8 +25,10 @@ mod day11;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
+mod day16;
 
-const LATEST: u8 = 14;
+const LATEST: u8 = 16;
 
 fn main() {
     let args = App::new("AdventOfCode")
@@ -60,8 +62,7 @@ fn try_main(day: u8) -> io::Result<()> {
 }
 
 fn run_one(day: u8) -> io::Result<Vec<String>> {
-    let input = format!("data/input_{}.txt", day);
-    let f: fn(&str) -> Vec<String> = match day {
+    let f: fn() -> Vec<String> = match day {
         0 => panic!("don't do that"),
         1 => day1::main,
         2 => day2::main,
@@ -77,24 +78,17 @@ fn run_one(day: u8) -> io::Result<Vec<String>> {
         12 => day12::main,
         13 => day13::main,
         14 => day14::main,
+        15 => day15::main,
+        16 => day16::main,
         _ => panic!("not there yet"),
     };
 
-    let results = try!(run_from_file(&input, f));
+    let results = f();
     println!("Day {}", day);
     for output in &results {
         println!("  {}", output);
     }
     Ok(results)
-}
-
-fn run_from_file<F>(file: &str, it: F) -> io::Result<Vec<String>>
-    where F: Fn(&str) -> Vec<String>
-{
-    let mut f = try!(File::open(file));
-    let mut input = String::new();
-    try!(f.read_to_string(&mut input));
-    Ok(it(&input))
 }
 
 #[test]
@@ -111,7 +105,9 @@ fn verify_my_answers() {
     assert_eq!(run_one(9).unwrap(), ["117", "909"]);
     assert_eq!(run_one(10).unwrap(), ["439880", "6230578"]);
     assert_eq!(run_one(11).unwrap(), ["vzbxxyzz", "vzcaabcc"]);
-    assert_eq!(run_one(12).unwrap(),  ["191164","87842"]);
+    assert_eq!(run_one(12).unwrap(), ["191164", "87842"]);
     assert_eq!(run_one(13).unwrap(), ["733", "725"]);
     assert_eq!(run_one(14).unwrap(), ["2640", "1102"]);
+    assert_eq!(run_one(15).unwrap(), ["222870", "117936"]);
+    assert_eq!(run_one(16).unwrap(), ["[40]", "[241]"]);
 }
