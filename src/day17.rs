@@ -1,24 +1,17 @@
 const DATA: &'static str = include_str!("../data/input_17.txt");
+const TARGET: u32 = 150;
 
 pub fn main() -> Vec<String> {
-    vec![part1().to_string(), part2().to_string()]
-}
-
-fn part1() -> usize {
     let mut data: Vec<u32> = DATA.lines().map(|l| l.parse::<u32>().unwrap()).collect();
+    // search with pruning works best if the data is sorted
     data.sort();
-    let ps = PowerSet::with_prune_condition(&data, |ss| ss.iter().sum::<u32>() > 150);
-    let v = ps.filter(|ss| ss.iter().sum::<u32>() == 150).collect::<Vec<_>>();
-    v.len()
-}
-
-fn part2() -> usize {
-    let mut data: Vec<u32> = DATA.lines().map(|l| l.parse::<u32>().unwrap()).collect();
-    data.sort();
-    let ps = PowerSet::with_prune_condition(&data, |ss| ss.iter().sum::<u32>() > 150);
-    let v = ps.filter(|ss| ss.iter().sum::<u32>() == 150).collect::<Vec<_>>();
-    let min = v.iter().map(|ss| ss.len()).min().unwrap();
-    v.iter().filter(|ss| ss.len() == min).count()
+    let ps = PowerSet::with_prune_condition(&data, |ss| ss.iter().sum::<u32>() > TARGET);
+    let v = ps.filter(|ss| ss.iter().sum::<u32>() == TARGET).collect::<Vec<_>>();
+    vec![v.len().to_string(),
+         {
+             let min = v.iter().map(|ss| ss.len()).min().unwrap();
+             v.iter().filter(|ss| ss.len() == min).count().to_string()
+         }]
 }
 
 struct PowerSet<'a, T, F>
@@ -46,7 +39,6 @@ impl<'a, T, F> PowerSet<'a, T, F>
             stack.push((vec![*selected], remaining));
             stack.push((vec![], remaining));
         } else {
-            // stack.push((vec![], &[T::zero(); 0][..]))
             stack.push((vec![], data))
         }
         PowerSet {
