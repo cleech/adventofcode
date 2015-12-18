@@ -86,7 +86,6 @@ fn race_2(input: &str, seconds: usize) -> usize {
         }
     }
     let winner = scorecard.iter()
-                          .inspect(|x| println!("{:?}", x))
                           .max_by_key(|&(_, v)| v.0)
                           .unwrap();
     (winner.1).0
