@@ -50,15 +50,15 @@ enum Gate {
 
 impl Gate {
     fn from_str(input: &str) -> Gate {
-        let set = Pcre::compile(r"^(\d+) -> ([a-z]+)$").unwrap();
-        let pass = Pcre::compile(r"^([a-z]+) -> ([a-z]+)$").unwrap();
-        let not = Pcre::compile(r"^NOT ([a-z]+) -> ([a-z]+)$").unwrap();
-        let and =
+        let mut set = Pcre::compile(r"^(\d+) -> ([a-z]+)$").unwrap();
+        let mut pass = Pcre::compile(r"^([a-z]+) -> ([a-z]+)$").unwrap();
+        let mut not = Pcre::compile(r"^NOT ([a-z]+) -> ([a-z]+)$").unwrap();
+        let mut and =
             Pcre::compile(r"^((?<pat>\d+)|(?<wire>[a-z]+)) AND (?<rhs>[a-z]+) -> (?<out>[a-z]+)$")
                 .unwrap();
-        let or = Pcre::compile(r"^([a-z]+) OR ([a-z]+) -> ([a-z]+)$").unwrap();
-        let lshift = Pcre::compile(r"^([a-z]+) LSHIFT (\d+) -> ([a-z]+)$").unwrap();
-        let rshift = Pcre::compile(r"^([a-z]+) RSHIFT (\d+) -> ([a-z]+)$").unwrap();
+        let mut or = Pcre::compile(r"^([a-z]+) OR ([a-z]+) -> ([a-z]+)$").unwrap();
+        let mut lshift = Pcre::compile(r"^([a-z]+) LSHIFT (\d+) -> ([a-z]+)$").unwrap();
+        let mut rshift = Pcre::compile(r"^([a-z]+) RSHIFT (\d+) -> ([a-z]+)$").unwrap();
 
         if let Some(m) = set.exec(input) {
             Gate::Source {

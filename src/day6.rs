@@ -20,7 +20,7 @@ fn doit<F, L>(f: &F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize
 }
 
 fn light_show(input: &str) -> usize {
-    let coords = Pcre::compile(r"(\d+),(\d+) through (\d+),(\d+)").unwrap();
+    let mut coords = Pcre::compile(r"(\d+),(\d+) through (\d+),(\d+)").unwrap();
     let mut state = box [[false; 1000]; 1000];
 
     let on = |light: &mut bool| *light = true;
@@ -55,7 +55,7 @@ fn test_light_show() {
 }
 
 fn bright_show(input: &str) -> u32 {
-    let coords = Pcre::compile(r"(\d+),(\d+) through (\d+),(\d+)").unwrap();
+    let mut coords = Pcre::compile(r"(\d+),(\d+) through (\d+),(\d+)").unwrap();
     let mut state = box [[0u32; 1000]; 1000];
 
     let on = |light: &mut u32| *light += 1;

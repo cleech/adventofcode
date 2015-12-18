@@ -10,9 +10,9 @@ pub fn main() -> Vec<String> {
 }
 
 fn nice_count(input: &str) -> usize {
-    let vowels = Pcre::compile(r"[aeiou]").unwrap();
-    let has_double = Pcre::compile(r"(.)\1").unwrap();
-    let bad_pairs = Pcre::compile(r"(ab|cd|pq|xy)").unwrap();
+    let mut vowels = Pcre::compile(r"[aeiou]").unwrap();
+    let mut has_double = Pcre::compile(r"(.)\1").unwrap();
+    let mut bad_pairs = Pcre::compile(r"(ab|cd|pq|xy)").unwrap();
 
     input.lines()
          .filter(|line| vowels.matches(line).count() >= 3)
@@ -31,8 +31,8 @@ fn test_nice_string() {
 }
 
 fn new_nice_count(input: &str) -> usize {
-    let pairs = Pcre::compile(r"(..).*\1").unwrap();
-    let sandwich = Pcre::compile(r"(.).\1").unwrap();
+    let mut pairs = Pcre::compile(r"(..).*\1").unwrap();
+    let mut sandwich = Pcre::compile(r"(.).\1").unwrap();
 
     input.lines()
          .filter(|line| pairs.exec(line).is_some())
