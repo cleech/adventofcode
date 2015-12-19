@@ -4,24 +4,39 @@ use std::mem;
 const DATA: &'static str = include_str!("../data/input_18.txt");
 
 pub fn main() -> Vec<String> {
-
     let mut life = Life::from_str(DATA);
     let lcount = life.nth(100).unwrap().lcount();
-    vec![format!("{}", lcount)]
+
+    let mut life = Life::from_str(DATA);
+    life.stick(0, 0);
+    life.stick(0, 99);
+    life.stick(99, 0);
+    life.stick(99, 99);
+    let lcount2 = life.nth(100).unwrap().lcount();
+
+    vec![lcount.to_string(), lcount2.to_string()]
 }
 
-struct Life([[bool; 100]; 100]);
+struct Life {
+    arr: [[bool; 100]; 100],
+    stuck: Vec<(usize, usize)>,
+}
 
 impl Life {
     fn new() -> Life {
-        Life([[false; 100]; 100])
+        Life {
+            arr: [[false; 100]; 100],
+            stuck: Vec::new(),
+        }
+    }
+
+    fn stick(&mut self, x: usize, y: usize) {
+        self.stuck.push((x, y));
     }
 
     fn from_str(data: &str) -> Life {
         let mut life = Life::new();
         {
-            let Life(ref mut arr) = life;
-
             for (l, c) in data.lines()
                               .enumerate()
                               .flat_map(move |(l, s)| {
@@ -30,27 +45,27 @@ impl Life {
                                    .filter(|&(_, z)| z == '#')
                                    .map(move |(c, _)| (l, c))
                               }) {
-                arr[l][c] = true;
+                life.arr[l][c] = true;
             }
         }
         life
     }
 
     fn to_string(&self) -> String {
-        let &Life(ref arr) = self;
-        arr.iter()
-           .map(|l| {
-               l.iter()
-                .map(|v| {
-                    match *v {
-                        true => '#',
-                        false => '.',
-                    }
-                })
-                .collect::<String>()
-           })
-           .collect::<Vec<String>>()
-           .join("\n")
+        self.arr
+            .iter()
+            .map(|l| {
+                l.iter()
+                 .map(|v| {
+                     match *v {
+                         true => '#',
+                         false => '.',
+                     }
+                 })
+                 .collect::<String>()
+            })
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 
     fn neighbors(x: usize, y: usize) -> Vec<(usize, usize)> {
@@ -83,17 +98,10 @@ impl Life {
     }
 
     fn lcount(&self) -> usize {
-        let &Life(ref arr) = self;
-        arr.iter()
-           .flat_map(|x| x.iter().filter(|&&b| b == true))
-           .count()
-    }
-}
-
-impl Clone for Life {
-    fn clone(&self) -> Life {
-        let &Life(ref arr) = self;
-        Life(*arr)
+        self.arr
+            .iter()
+            .flat_map(|x| x.iter().filter(|&&b| b == true))
+            .count()
     }
 }
 
@@ -107,7 +115,6 @@ impl Iterator for Life {
     type Item = Life;
 
     fn next(&mut self) -> Option<Life> {
-        let &mut Life(ref mut arr) = self;
         let mut next = [[false; 100]; 100];
 
         for x in 0..100 {
@@ -115,13 +122,13 @@ impl Iterator for Life {
                 let count = Life::neighbors(x, y)
                                 .into_iter()
                                 .map(|(x, y)| {
-                                    let a = arr.get(x);
+                                    let a = self.arr.get(x);
                                     let b = a.and_then(|a| a.get(y));
                                     b.unwrap_or(&false).to_owned()
                                 })
                                 .filter(|b| *b == true)
                                 .count();
-                match (arr[x][y], count) {
+                match (self.arr[x][y], count) {
                     (true, 2) | (true, 3) => next[x][y] = true,
                     (true, _) => next[x][y] = false,
                     (false, 3) => next[x][y] = true,
@@ -129,15 +136,15 @@ impl Iterator for Life {
                 }
             }
         }
-        // force corners on
-        {
-            next[0][0] = true;
-            next[0][99] = true;
-            next[99][0] = true;
-            next[99][99] = true;
+        for &(x, y) in self.stuck.iter() {
+            next[x][y] = true;
         }
-        mem::swap(arr, &mut next);
-        //mem::replace(arr, next);
-        Some(Life(next))
+
+        mem::swap(&mut self.arr, &mut next);
+
+        Some(Life {
+            arr: next,
+            stuck: self.stuck.clone(),
+        })
     }
 }
