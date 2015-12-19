@@ -18,14 +18,16 @@ pub fn main() -> Vec<String> {
 }
 
 struct Life {
-    arr: [[bool; 100]; 100],
+    size: (usize, usize),
+    arr: [bool; 100 * 100],
     stuck: Vec<(usize, usize)>,
 }
 
 impl Life {
     fn new() -> Life {
         Life {
-            arr: [[false; 100]; 100],
+            size: (100, 100),
+            arr: [false; 100 * 100],
             stuck: Vec::new(),
         }
     }
@@ -45,7 +47,7 @@ impl Life {
                                    .filter(|&(_, z)| z == '#')
                                    .map(move |(c, _)| (l, c))
                               }) {
-                life.arr[l][c] = true;
+                life.arr[l * life.size.0 + c] = true;
             }
         }
         life
@@ -53,7 +55,7 @@ impl Life {
 
     fn to_string(&self) -> String {
         self.arr
-            .iter()
+            .chunks(self.size.0)
             .map(|l| {
                 l.iter()
                  .map(|v| {
@@ -100,7 +102,7 @@ impl Life {
     fn lcount(&self) -> usize {
         self.arr
             .iter()
-            .flat_map(|x| x.iter().filter(|&&b| b == true))
+            .filter(|&&b| b == true)
             .count()
     }
 }
@@ -115,34 +117,34 @@ impl Iterator for Life {
     type Item = Life;
 
     fn next(&mut self) -> Option<Life> {
-        let mut next = [[false; 100]; 100];
+        let mut next = [false; 100 * 100];
 
         for x in 0..100 {
             for y in 0..100 {
                 let count = Life::neighbors(x, y)
                                 .into_iter()
                                 .map(|(x, y)| {
-                                    let a = self.arr.get(x);
-                                    let b = a.and_then(|a| a.get(y));
+                                    let b = self.arr.get(x * self.size.0 + y);
                                     b.unwrap_or(&false).to_owned()
                                 })
                                 .filter(|b| *b == true)
                                 .count();
-                match (self.arr[x][y], count) {
-                    (true, 2) | (true, 3) => next[x][y] = true,
-                    (true, _) => next[x][y] = false,
-                    (false, 3) => next[x][y] = true,
-                    (false, _) => next[x][y] = false,
+                match (self.arr[x * self.size.0 + y], count) {
+                    (true, 2) | (true, 3) => next[x * 100 + y] = true,
+                    (true, _) => next[x * 100 + y] = false,
+                    (false, 3) => next[x * 100 + y] = true,
+                    (false, _) => next[x * 100 + y] = false,
                 }
             }
         }
         for &(x, y) in self.stuck.iter() {
-            next[x][y] = true;
+            next[x * 100 + y] = true;
         }
 
         mem::swap(&mut self.arr, &mut next);
 
         Some(Life {
+            size: self.size,
             arr: next,
             stuck: self.stuck.clone(),
         })
