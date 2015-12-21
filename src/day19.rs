@@ -5,15 +5,9 @@ const DATA: &'static str = include_str!("../data/input_19.txt");
 
 pub fn main() -> Vec<String> {
     let ctx = Context::from_str(DATA);
-    vec![part1(ctx).to_string()]
-}
-
-fn part1(ctx: Context) -> usize {
-    ctx.replacements
-       .iter()
-       .flat_map(|&(from, to)| ctx.medicine.single_replacements(from, to).into_iter())
-       .unique()
-       .count()
+    let s1 = ctx.all_replacements().count().to_string();
+    let s2 = ctx.find_production(ctx.medicine, 0).unwrap().to_string();
+    vec![s1, s2]
 }
 
 #[derive(Debug)]
@@ -22,7 +16,7 @@ struct Context {
     medicine: &'static str,
 }
 
-impl Context {
+impl<'a> Context {
     fn from_str(data: &'static str) -> Context {
         let mut input = data.lines();
         let mut replacements = Vec::new();
@@ -37,10 +31,41 @@ impl Context {
         let medicine = input.next().unwrap();
         assert_eq!(input.next(), None);
 
+        // for part 2, we want to work backwords trying longest first
+        // as we reduce the medicine molecule towards "e"
+        // part 1 does not care about ordering of the replacement rules
+        replacements.sort_by(|&(_, a), &(_, b)| b.len().cmp(&a.len()));
+
         Context {
             replacements: replacements,
             medicine: medicine,
         }
+    }
+
+    fn all_replacements(&'a self) -> Box<Iterator<Item = String> + 'a> {
+        box self.replacements
+                .iter()
+                .flat_map(move |&(from, to)| {
+                    self.medicine.single_replacements(from, to).into_iter()
+                })
+                .unique()
+    }
+
+    fn find_production(&self, input: &str, depth: usize) -> Option<usize> {
+        if input == "e" {
+            return Some(depth);
+        }
+        for next_step in self.replacements
+                             .iter()
+                             .flat_map(|&(from, to)| {
+                                 input.single_replacements(to, from).into_iter()
+                             })
+                             .unique() {
+            if let Some(count) = self.find_production(&next_step, depth + 1) {
+                return Some(count);
+            }
+        }
+        None
     }
 }
 
