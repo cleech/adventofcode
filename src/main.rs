@@ -121,5 +121,5 @@ fn verify_my_answers() {
     assert_eq!(run_one(17).unwrap(), ["654", "57"]);
     assert_eq!(run_one(18).unwrap(), ["768", "781"]);
     assert_eq!(run_one(19).unwrap(), ["535", "212"]);
-    assert_eq!(run_one(20).unwrap(), ["665280", ""]);
+    assert_eq!(run_one(20).unwrap(), ["665280", "705600"]);
 }
