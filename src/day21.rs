@@ -103,18 +103,18 @@ impl Character {
 }
 
 fn equipment_builds() -> Box<Iterator<Item = [&'static Item<'static>; 4]>> {
-    box WEAPONS.iter()
-               .flat_map(move |w| {
-                   ARMOR.iter()
-                        .flat_map(move |a| {
-                            RINGS.iter()
-                                 .flat_map(move |r1| {
-                                     RINGS.iter()
-                                          .filter(move |&r2| r2 != r1)
-                                          .map(move |r2| [w, a, r1, r2])
+    box RINGS.iter()
+             .flat_map(move |r1| {
+                 RINGS.iter()
+                      .filter(move |&r2| r2 != r1)
+                      .flat_map(move |r2| {
+                          WEAPONS.iter()
+                                 .flat_map(move |w| {
+                                     ARMOR.iter()
+                                          .map(move |a| [w, a, r1, r2])
                                  })
-                        })
-               })
+                      })
+             })
 }
 
 fn least_expensive_win(boss: &Character) -> Option<usize> {
