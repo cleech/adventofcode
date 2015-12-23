@@ -10,20 +10,17 @@ pub fn main() -> Vec<String> {
     let budget: i32 = 100;
 
     // generate all possible recipes
-    // (this really should be done lazily)
-    let mut recipes: Vec<[i32; 4]> = Vec::with_capacity(176851);
-    for a in 0..budget + 1 {
-        for b in 0..budget + 1 - a {
-            for c in 0..budget + 1 - a - b {
+    let recipes = (0..budget + 1).flat_map(move |a| {
+        (0..budget + 1 - a).flat_map(move |b| {
+            (0..budget + 1 - a - b).map(move |c| {
                 let d = budget - a - b - c;
-                recipes.push([a, b, c, d]);
-            }
-        }
-    }
+                [a, b, c, d]
+            })
+        })
+    });
 
     // score all the cookies
-    let cookies = recipes.iter()
-                         .map(|r| {
+    let cookies = recipes.map(|r| {
                              // a recipe is a list of 4 amounts
                              // for each amount pair with the ingredient data
                              let scores =
