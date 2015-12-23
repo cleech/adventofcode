@@ -11,15 +11,15 @@ extern crate nom;
 extern crate clap;
 use clap::{Arg, App};
 
-mod day1;
-mod day2;
-mod day3;
-mod day4;
-mod day5;
-mod day6;
-mod day7;
-mod day8;
-mod day9;
+mod day01;
+mod day02;
+mod day03;
+mod day04;
+mod day05;
+mod day06;
+mod day07;
+mod day08;
+mod day09;
 mod day10;
 mod day11;
 mod day12;
@@ -69,15 +69,15 @@ fn try_main(day: u8) -> io::Result<()> {
 fn run_one(day: u8) -> io::Result<Vec<String>> {
     let f: fn() -> Vec<String> = match day {
         0 => panic!("don't do that"),
-        1 => day1::main,
-        2 => day2::main,
-        3 => day3::main,
-        4 => day4::main,
-        5 => day5::main,
-        6 => day6::main,
-        7 => day7::main,
-        8 => day8::main,
-        9 => day9::main,
+        1 => day01::main,
+        2 => day02::main,
+        3 => day03::main,
+        4 => day04::main,
+        5 => day05::main,
+        6 => day06::main,
+        7 => day07::main,
+        8 => day08::main,
+        9 => day09::main,
         10 => day10::main,
         11 => day11::main,
         12 => day12::main,
