@@ -1,3 +1,4 @@
+use std::iter;
 use std::cmp::max;
 
 const DATA: &'static str = include_str!("../data/input_21.txt");
@@ -27,16 +28,13 @@ static WEAPONS: [Item<'static>; 5] = [item!("Dagger", 8, 4, 0),
                                       item!("Longsword", 40, 7, 0),
                                       item!("Greataxe", 74, 8, 0)];
 
-static ARMOR: [Item<'static>; 6] = [item!("NONE", 0, 0, 0),
-                                    item!("Leather", 13, 0, 1),
+static ARMOR: [Item<'static>; 5] = [item!("Leather", 13, 0, 1),
                                     item!("Chainmail", 31, 0, 2),
                                     item!("Splintmail", 53, 0, 3),
                                     item!("Bandedmail", 75, 0, 4),
                                     item!("Platemail", 102, 0, 5)];
 
-static RINGS: [Item<'static>; 8] = [item!("NONE 1", 0, 0, 0),
-                                    item!("NONE 2", 0, 0, 0),
-                                    item!("Damage +1", 25, 1, 0),
+static RINGS: [Item<'static>; 6] = [item!("Damage +1", 25, 1, 0),
                                     item!("Damage +2", 50, 2, 0),
                                     item!("Damage +3", 100, 3, 0),
                                     item!("Defense +1", 20, 0, 1),
@@ -102,15 +100,21 @@ impl Character {
     }
 }
 
+// added to item lists when item use is optional (not weapons)
+static NONE: Item<'static> = item!("NONE", 0, 0, 0);
+
 fn equipment_builds() -> Box<Iterator<Item = [&'static Item<'static>; 4]>> {
     box RINGS.iter()
+             .chain(iter::once(&NONE))
              .flat_map(move |r1| {
                  RINGS.iter()
-                      .filter(move |&r2| r2 != r1)
+                      .chain(iter::once(&NONE))
+                      .filter(move |&r2| r2 != r1 || r2 == &NONE)
                       .flat_map(move |r2| {
                           WEAPONS.iter()
                                  .flat_map(move |w| {
                                      ARMOR.iter()
+                                          .chain(iter::once(&NONE))
                                           .map(move |a| [w, a, r1, r2])
                                  })
                       })
