@@ -3,7 +3,12 @@ const DATA: &'static str = include_str!("../data/input_23.txt");
 pub fn main() -> Vec<String> {
     let mut part1 = Program::compile(DATA).unwrap();
     part1.run();
-    vec![part1.b.to_string()]
+
+    let mut part2 = Program::compile(DATA).unwrap();
+    part2.a = 1;
+    part2.run();
+
+    vec![part1.b.to_string(), part2.b.to_string()]
 }
 
 #[test]
