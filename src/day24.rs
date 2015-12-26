@@ -1,19 +1,24 @@
 const DATA: &'static str = include_str!("../data/input_24.txt");
 
 pub fn main() -> Vec<String> {
-    part1();
-    vec![]
-}
-
-fn part1() {
     let v = DATA.lines().map(|l| l.parse::<u64>().unwrap()).collect::<Vec<u64>>();
     let weight = v.iter().sum::<u64>() / 3;
-    let ps = PowerSet::with_prune_condition(&v, |ss| ss.iter().sum::<u64>() > weight);
-    let count = ps.filter(|ss| ss.iter().sum::<u64>() == weight)
-                  .filter(|ss| ss.len() == 6)
-                  .map(|ss| ss.iter().product::<u64>())
-                  .collect::<Vec<_>>();
-    println!("{:?}", count.iter().min());
+    let s1 = min_qe(&v, weight).to_string();
+
+    let weight = v.iter().sum::<u64>() / 4;
+    let s2 = min_qe(&v, weight).to_string();
+    vec![s1, s2]
+}
+
+fn min_qe(data: &[u64], weight: u64) -> u64 {
+    let ps = PowerSet::with_prune_condition(&data, |ss| ss.iter().sum::<u64>() > weight);
+    let subsets = ps.filter(|ss| ss.iter().sum::<u64>() == weight).collect::<Vec<_>>();
+    let size = subsets.iter().map(|ss| ss.len()).min().unwrap();
+    subsets.iter()
+           .filter(|ss| ss.len() == size)
+           .map(|ss| ss.iter().product::<u64>())
+           .min()
+           .unwrap()
 }
 
 struct PowerSet<'a, T, F>
