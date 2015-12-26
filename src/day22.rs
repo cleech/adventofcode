@@ -3,12 +3,14 @@ use std::cmp::max;
 const DATA: &'static str = include_str!("../data/input_22.txt");
 
 pub fn main() -> Vec<String> {
-    let mut hero = Character::wizard();
-    let mut boss = Character::boss(DATA);
-    hero.attack(&mut boss);
-    vec![]
+    let hero = Character::wizard();
+    let boss = Character::boss(DATA);
+    let s1 = find_best_solution(&hero, &boss, 0);
+    let s2 = find_best_solution(&hero, &boss, 1);
+    vec![s1.unwrap().to_string(), s2.unwrap().to_string()]
 }
 
+#[derive(Clone)]
 enum Effect {
     Shield {
         turns: usize,
@@ -49,16 +51,16 @@ impl Spell {
         caster.mana_spent += cost;
         match *self {
             Spell::MagicMissile => {
-                println!("Player casts Magic Missile, dealing 4 damage.");
+                // println!("Player casts Magic Missile, dealing 4 damage.");
                 enemy.hp -= 4;
             }
             Spell::Drain => {
-                println!("Player casts Drain, dealing 2 damage, and healing 2 hit points.");
+                // println!("Player casts Drain, dealing 2 damage, and healing 2 hit points.");
                 enemy.hp -= 2;
                 caster.hp += 2;
             }
             Spell::Shield => {
-                println!("Player casts Shield, increasing armor by 7.");
+                // println!("Player casts Shield, increasing armor by 7.");
                 caster.armor += 7;
                 caster.install(Effect::Shield {
                     turns: 6,
@@ -66,14 +68,14 @@ impl Spell {
                 })
             }
             Spell::Poison => {
-                println!("Player casts Poison.");
+                // println!("Player casts Poison.");
                 caster.install(Effect::Poison {
                     turns: 6,
                     damage: 3,
                 })
             }
             Spell::Recharge => {
-                println!("Player casts Recharge.");
+                // println!("Player casts Recharge.");
                 caster.install(Effect::Recharge {
                     turns: 5,
                     mana: 101,
@@ -83,6 +85,7 @@ impl Spell {
     }
 }
 
+#[derive(Clone)]
 struct Character {
     hp: isize,
     damage: isize,
@@ -144,9 +147,9 @@ impl Character {
 
         if let Some(Effect::Shield{ref mut turns, armor}) = self.shield {
             *turns -= 1;
-            println!("Shield's timer is now {}.", turns);
+            // println!("Shield's timer is now {}.", turns);
             if *turns == 0 {
-                println!("Shield wears off, decreasing armor by 7.");
+                // println!("Shield wears off, decreasing armor by 7.");
                 self.armor -= armor;
                 clear_shield = true;
             }
@@ -157,12 +160,10 @@ impl Character {
 
         if let Some(Effect::Poison{ref mut turns, damage}) = self.poison {
             *turns -= 1;
-            println!("Poison's deals {} damage; its timer is now {}.",
-                     damage,
-                     turns);
+            // println!("Poison's deals {} damage; its timer is now {}.", damage, turns);
             boss.hp -= damage;
             if *turns == 0 {
-                println!("Poison wears off.");
+                // println!("Poison wears off.");
                 clear_poison = true;
             }
         }
@@ -172,58 +173,15 @@ impl Character {
 
         if let Some(Effect::Recharge{ref mut turns, mana}) = self.recharge {
             *turns -= 1;
-            println!("Recharge provides {} mana; its timer is now {}.",
-                     mana,
-                     turns);
+            // println!("Recharge provides {} mana; its timer is now {}.", mana, turns);
             self.mana += mana;
             if *turns == 0 {
-                println!("Recharge wears off.");
+                // println!("Recharge wears off.");
                 clear_recharge = true;
             }
         }
         if clear_recharge {
             self.recharge = None;
-        }
-    }
-
-    fn attack(&mut self, boss: &mut Character) -> bool {
-        loop {
-            println!("\n-- Player turn --");
-            println!("- Player has {} hit points, {} armor, {} mana",
-                     self.hp,
-                     self.armor,
-                     self.mana);
-            println!("- Boss has {} hit points", boss.hp);
-            self.run_effects(boss);
-
-            // FIXME pick a spell
-            // self.valid_spells().get(0).unwrap().cast(self, boss);
-            self.valid_spells().last().unwrap().cast(self, boss);
-
-            if boss.hp < 1 {
-                println!("This kills the boss, and the player wins");
-                println!("## total mana spent was {} ##", self.mana_spent);
-                return true;
-            }
-
-            println!("\n-- Boss turn --");
-            println!("- Player has {} hit points, {} armor, {} mana",
-                     self.hp,
-                     self.armor,
-                     self.mana);
-            println!("- Boss has {} hit points", boss.hp);
-            self.run_effects(boss);
-
-            let damage = max(1, boss.damage - self.armor);
-            println!("Boss attacks for {} - {} = {} damage!",
-                     boss.damage,
-                     self.armor,
-                     damage);
-            self.hp -= damage;
-            if self.hp < 1 {
-                println!("This kills the player, and the boss wins");
-                return false;
-            }
         }
     }
 
@@ -249,3 +207,73 @@ impl Character {
     }
 }
 
+// search all valid play strategies, stopping with a sane max mana spend of 2000
+// based on a winning strategy of casting the most expensive spell each time
+
+fn find_best_solution(h: &Character, b: &Character, hard: isize) -> Option<isize> {
+    if h.mana_spent >= 2000 {
+        return None;
+    }
+
+    let mut h1 = h.clone();
+    let mut b1 = b.clone();
+
+    // println!("\n-- Player turn --");
+    // println!("- Player has {} hit points, {} armor, {} mana", hero.hp, hero.armor, hero.mana);
+    // println!("- Boss has {} hit points", boss.hp);
+
+    h1.hp -= hard;
+
+    if h1.hp < 1 {
+        return None;
+    }
+
+    h1.run_effects(&mut b1);
+
+    if b1.hp < 1 {
+        return Some(h1.mana_spent);
+    }
+
+    h1.valid_spells()
+        .iter()
+        .map(|spell| {
+            let mut hero = h1.clone();
+            let mut boss = b1.clone();
+
+            spell.cast(&mut hero, &mut boss);
+
+            if boss.hp < 1 {
+                // println!("This kills the boss, and the player wins");
+                // println!("## total mana spent was {} ##", hero.mana_spent);
+                return Some(hero.mana_spent);
+            }
+
+            // println!("\n-- Boss turn --");
+            // println!("- Player has {} hit points, {} armor, {} mana", hero.hp, hero.armor, hero.mana);
+            // println!("- Boss has {} hit points", boss.hp);
+
+            hero.run_effects(&mut boss);
+
+            if boss.hp < 1 {
+                return Some(hero.mana_spent);
+            }
+
+            let damage = max(1, boss.damage - hero.armor);
+
+            // println!("Boss attacks for {} - {} = {} damage!", boss.damage, hero.armor, damage);
+
+            hero.hp -= damage;
+
+            if hero.hp < 1 {
+                // println!("This kills the player, and the boss wins");
+                return None;
+            }
+
+            find_best_solution(&hero, &boss, hard)
+        })
+    .filter(|o| o.is_some())
+        .map(|o| o.unwrap())
+        .collect::<Vec<_>>()
+        .into_iter()
+        .min()
+}
