@@ -1,5 +1,6 @@
 #![feature(iter_arith)] // sum is not stable
 #![feature(box_syntax)]
+#![feature(associated_consts)]
 
 use std::io;
 
@@ -35,8 +36,9 @@ mod day21;
 mod day22;
 mod day23;
 mod day24;
+mod day25;
 
-const LATEST: u8 = 24;
+const LATEST: u8 = 25;
 
 fn main() {
     let args = App::new("AdventOfCode")
@@ -96,6 +98,7 @@ fn run_one(day: u8) -> io::Result<Vec<String>> {
         22 => day22::main,
         23 => day23::main,
         24 => day24::main,
+        25 => day25::main,
         _ => panic!("not there yet"),
     };
 
@@ -133,4 +136,6 @@ fn verify_my_answers() {
     assert_eq!(run_one(21).unwrap(), ["111", "188"]);
     assert_eq!(run_one(22).unwrap(), ["900", "1216"]);
     assert_eq!(run_one(23).unwrap(), ["255", "334"]);
+    assert_eq!(run_one(24).unwrap(), ["11266889531", "77387711"]);
+    assert_eq!(run_one(25).unwrap(), ["9132360"]);
 }
