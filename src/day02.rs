@@ -1,12 +1,12 @@
 const DATA: &'static str = include_str!("../data/input_2.txt");
 
 pub fn main() -> Vec<String> {
-    let s1 = paper(DATA);
-    let s2 = ribbon(DATA);
+    let s1 = paper(DATA).unwrap();
+    let s2 = ribbon(DATA).unwrap();
     vec![s1.to_string(), s2.to_string()]
 }
 
-fn paper(input: &str) -> u32 {
+fn paper(input: &str) -> Result<u32, &str> {
     fn paper_for_present(l: u32, w: u32, h: u32) -> u32 {
         let mut sides = [l * w, w * h, h * l];
         sides.sort();
@@ -16,19 +16,17 @@ fn paper(input: &str) -> u32 {
 
     input.lines()
          .map(|line| {
-             let (l, w, h) = scan_fmt!(line, "{d}x{d}x{d}", u32, u32, u32);
-             paper_for_present(l.unwrap(), w.unwrap(), h.unwrap())
+             if let (Some(l), Some(w), Some(h)) = scan_fmt!(line, "{d}x{d}x{d}", u32, u32, u32) {
+                 Ok(paper_for_present(l, w, h))
+             } else {
+                 Err("bad input")
+             }
          })
-         .sum()
+         .collect::<Result<Vec<u32>, _>>()
+         .map(|v| v.iter().sum())
 }
 
-#[test]
-fn test_paper() {
-    assert_eq!(paper("2x3x4"), 58);
-    assert_eq!(paper("1x1x10"), 43);
-}
-
-fn ribbon(input: &str) -> u32 {
+fn ribbon(input: &str) -> Result<u32, &str> {
     fn ribbon_for_present(l: u32, w: u32, h: u32) -> u32 {
         let mut sides = [2 * l + 2 * w, 2 * w + 2 * h, 2 * h + 2 * l];
         sides.sort();
@@ -39,14 +37,29 @@ fn ribbon(input: &str) -> u32 {
 
     input.lines()
          .map(|line| {
-             let (l, w, h) = scan_fmt!(line, "{d}x{d}x{d}", u32, u32, u32);
-             ribbon_for_present(l.unwrap(), w.unwrap(), h.unwrap())
+             if let (Some(l), Some(w), Some(h)) = scan_fmt!(line, "{d}x{d}x{d}", u32, u32, u32) {
+                 Ok(ribbon_for_present(l, w, h))
+             } else {
+                 Err("bad input")
+             }
          })
-         .sum()
+         .collect::<Result<Vec<u32>, _>>()
+         .map(|v| v.iter().sum())
 }
 
-#[test]
-fn test_ribbon() {
-    assert_eq!(ribbon("2x3x4"), 34);
-    assert_eq!(ribbon("1x1x10"), 14);
+#[cfg(test)]
+mod test {
+    use super::{paper, ribbon};
+
+    #[test]
+    fn test_paper() {
+        assert_eq!(paper("2x3x4"), Ok(58));
+        assert_eq!(paper("1x1x10"), Ok(43));
+    }
+
+    #[test]
+    fn test_ribbon() {
+        assert_eq!(ribbon("2x3x4"), Ok(34));
+        assert_eq!(ribbon("1x1x10"), Ok(14));
+    }
 }
