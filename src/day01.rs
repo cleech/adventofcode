@@ -2,7 +2,7 @@ const DATA: &'static str = include_str!("../data/input_1.txt");
 
 pub fn main() -> Vec<String> {
     let s1 = floor_from_instructions(DATA);
-    let s2 = fist_instruction_to_reach(DATA, -1);
+    let s2 = first_instruction_to_reach(DATA, -1).unwrap();
     vec![s1.to_string(), s2.to_string()]
 }
 
@@ -18,32 +18,39 @@ fn floor_from_instructions(input: &str) -> i32 {
     input.chars().map(instruction_map).sum()
 }
 
-#[test]
-fn test_floor_from_inst() {
-    assert_eq!(floor_from_instructions("(())"), 0);
-    assert_eq!(floor_from_instructions("()()"), 0);
-    assert_eq!(floor_from_instructions("((("), 3);
-    assert_eq!(floor_from_instructions("(()(()("), 3);
-    assert_eq!(floor_from_instructions("))((((("), 3);
-    assert_eq!(floor_from_instructions("())"), -1);
-    assert_eq!(floor_from_instructions("))("), -1);
-    assert_eq!(floor_from_instructions(")))"), -3);
-    assert_eq!(floor_from_instructions(")())())"), -3);
-}
-
-fn fist_instruction_to_reach(input: &str, target_floor: i32) -> usize {
+fn first_instruction_to_reach(input: &str, target_floor: i32) -> Option<usize> {
     input.chars()
-         .map(instruction_map)
-         .scan(0, |floor, direction| {
-             *floor += direction;
+         .scan(0, |floor, c| {
+             *floor += instruction_map(c);
              Some(*floor)
          })
          .position(|floor| floor == target_floor)
-         .unwrap() + 1
+         .map(|instruction| {
+             // position is 0 indexed, but we want to count moves from 1
+             instruction + 1
+         })
 }
 
-#[test]
-fn test_first_inst_to_reach() {
-    assert_eq!(fist_instruction_to_reach(")", -1), 1);
-    assert_eq!(fist_instruction_to_reach("()())", -1), 5);
+#[cfg(test)]
+mod test {
+    use super::{floor_from_instructions, first_instruction_to_reach};
+
+    #[test]
+    fn test_floor_from_inst() {
+        assert_eq!(floor_from_instructions("(())"), 0);
+        assert_eq!(floor_from_instructions("()()"), 0);
+        assert_eq!(floor_from_instructions("((("), 3);
+        assert_eq!(floor_from_instructions("(()(()("), 3);
+        assert_eq!(floor_from_instructions("))((((("), 3);
+        assert_eq!(floor_from_instructions("())"), -1);
+        assert_eq!(floor_from_instructions("))("), -1);
+        assert_eq!(floor_from_instructions(")))"), -3);
+        assert_eq!(floor_from_instructions(")())())"), -3);
+    }
+
+    #[test]
+    fn test_first_inst_to_reach() {
+        assert_eq!(first_instruction_to_reach(")", -1), Some(1));
+        assert_eq!(first_instruction_to_reach("()())", -1), Some(5));
+    }
 }
