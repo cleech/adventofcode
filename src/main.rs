@@ -1,8 +1,11 @@
 #![feature(iter_arith)] // sum is not stable
 #![feature(box_syntax)]
 #![feature(associated_consts)]
+#![feature(time2)]
+#![cfg_attr(test, feature(test))]
 
 use std::io;
+use std::time;
 
 #[macro_use]
 extern crate scan_fmt;
@@ -102,8 +105,10 @@ fn run_one(day: u8) -> io::Result<Vec<String>> {
         _ => panic!("not there yet"),
     };
 
+    let start = time::Instant::now();
     let results = f();
-    println!("Day {}", day);
+    let time = start.elapsed();
+    println!("Day {}\t{:?}", day, time);
     for output in &results {
         println!("  {}", output);
     }
