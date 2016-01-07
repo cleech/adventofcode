@@ -2,6 +2,8 @@ extern crate crypto;
 use self::crypto::digest::Digest;
 use self::crypto::md5::Md5;
 
+use std::io::Write;
+
 const DATA: &'static str = include_str!("../data/input_4.txt");
 
 pub fn main() -> Vec<String> {
@@ -10,23 +12,53 @@ pub fn main() -> Vec<String> {
     vec![s1.to_string(), s2.to_string()]
 }
 
+fn leading_zeros(buf: &[u8], count: usize) -> bool {
+    let (bytes, nibble) = (count / 2, count % 2);
+    buf[..bytes].iter().all(|b| *b == 0) &&
+    if nibble != 0 {
+        (buf[bytes] & 0xf0) == 0
+    } else {
+        true
+    }
+}
+
 fn find_number(key: &str, zeros: usize) -> u32 {
     let mut md5 = Md5::new();
-    let prefix = format!("{:01$}", 0, zeros);
+    let k = key.as_bytes();
+    let mut buf = Vec::with_capacity(256);
+    let mut output = [0u8; 16];
 
     (1..)
         .find(|n| {
+            // it would be nice if I could just roll-back to this state instead of inputting the key each time
             md5.reset();
-            md5.input_str(&key);
-            md5.input_str(&n.to_string());
-            md5.result_str().starts_with(&prefix)
+            md5.input(k);
+
+            // use write! to a pre-allocated buffer
+            buf.clear();
+            write!(&mut buf, "{}", n).unwrap();
+            md5.input(&buf);
+
+            md5.result(&mut output);
+            leading_zeros(&output, zeros)
         })
         .unwrap()
 }
 
-#[test]
-#[ignore]
-fn test_find_number() {
-    assert_eq!(find_number("abcdef", 5), 609043);
-    assert_eq!(find_number("pqrstuv", 5), 1048970);
+#[cfg(test)]
+mod test {
+    extern crate test;
+    use self::test::Bencher;
+    use super::{find_number, DATA};
+
+    #[test]
+    fn test_find_number() {
+        assert_eq!(find_number("abcdef", 5), 609043);
+        assert_eq!(find_number("pqrstuv", 5), 1048970);
+    }
+
+    #[bench]
+    fn bench_day4(b: &mut Bencher) {
+        b.iter(|| super::find_number(DATA.trim(), 5));
+    }
 }
