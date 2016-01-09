@@ -22,20 +22,20 @@ enum Cmnd {
     Toggle((usize, usize), (usize, usize)),
 }
 
-fn parse_coords(line: &str) -> ((usize, usize), (usize, usize)) {
+fn parse_coords(line: &str) -> Result<((usize, usize), (usize, usize)), &'static str> {
     if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&line,
                                                             "{d},{d} through {d},{d}",
                                                             usize,
                                                             usize,
                                                             usize,
                                                             usize) {
-        ((a, b), (c, d))
+        Ok(((a, b), (c, d)))
     } else {
-        panic!("bad input");
+        Err("error parsing coordinates")
     }
 }
 
-fn parse_cmnd(line: &str) -> Cmnd {
+fn parse_cmnd(line: &str) -> Result<Cmnd, &'static str> {
     let mut words = line.split_whitespace();
 
     match words.next() {
@@ -43,20 +43,20 @@ fn parse_cmnd(line: &str) -> Cmnd {
             match words.next() {
                 Some("on") => {
                     let c = parse_coords(&words.collect::<String>());
-                    Cmnd::On(c.0, c.1)
+                    c.map(|c| Cmnd::On(c.0, c.1))
                 }
                 Some("off") => {
                     let c = parse_coords(&words.collect::<String>());
-                    Cmnd::Off(c.0, c.1)
+                    c.map(|c| Cmnd::Off(c.0, c.1))
                 }
-                _ => panic!("bad input"),
+                _ => Err("error parsing command"),
             }
         }
         Some("toggle") => {
             let c = parse_coords(&words.collect::<String>());
-            Cmnd::Toggle(c.0, c.1)
+            c.map(|c| Cmnd::Toggle(c.0, c.1))
         }
-        _ => panic!("bad input"),
+        _ => Err("error parsing command"),
     }
 }
 
@@ -65,11 +65,13 @@ fn light_show(input: &str) -> usize {
 
     for line in input.lines() {
         let cmnd = parse_cmnd(line);
-        match cmnd {
-            Cmnd::On(a, b) => doit(|light: &mut bool| *light = true, &mut state, a, b),
-            Cmnd::Off(a, b) => doit(|light: &mut bool| *light = false, &mut state, a, b),
-            Cmnd::Toggle(a, b) => doit(|light: &mut bool| *light = !*light, &mut state, a, b),
-        }
+        let _ = cmnd.map(|c| {
+            match c {
+                Cmnd::On(a, b) => doit(|light: &mut bool| *light = true, &mut state, a, b),
+                Cmnd::Off(a, b) => doit(|light: &mut bool| *light = false, &mut state, a, b),
+                Cmnd::Toggle(a, b) => doit(|light: &mut bool| *light = !*light, &mut state, a, b),
+            }
+        });
     }
     state.iter()
          .flat_map(|inner| inner.iter())
@@ -90,11 +92,13 @@ fn bright_show(input: &str) -> u32 {
 
     for line in input.lines() {
         let cmnd = parse_cmnd(line);
-        match cmnd {
-            Cmnd::On(a, b) => doit(&on, &mut state, a, b),
-            Cmnd::Off(a, b) => doit(&off, &mut state, a, b),
-            Cmnd::Toggle(a, b) => doit(&toggle, &mut state, a, b),
-        }
+        let _ = cmnd.map(|c| {
+            match c {
+                Cmnd::On(a, b) => doit(&on, &mut state, a, b),
+                Cmnd::Off(a, b) => doit(&off, &mut state, a, b),
+                Cmnd::Toggle(a, b) => doit(&toggle, &mut state, a, b),
+            }
+        });
     }
     state.iter()
          .flat_map(|inner| inner.iter())
