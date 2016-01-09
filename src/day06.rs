@@ -16,6 +16,37 @@ fn doit<F, L>(f: F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize,
     }
 }
 
+fn parse_input_line<'a, L>(line: &str,
+                           on: &'a Fn(&mut L),
+                           off: &'a Fn(&mut L),
+                           toggle: &'a Fn(&mut L))
+                           -> Box<Fn(&mut [[L; 1000]; 1000]) + 'a> {
+    let mut words = line.split_whitespace();
+
+    let f: (&Fn(&mut L)) = match words.next() {
+        Some("turn") => {
+            match words.next() {
+                Some("on") => on,
+                Some("off") => off,
+                _ => panic!("bad input"),
+            }
+        }
+        Some("toggle") => toggle,
+        _ => panic!("bad input"),
+    };
+
+    if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&words.collect::<String>(),
+                                                            "{d},{d} through {d},{d}",
+                                                            usize,
+                                                            usize,
+                                                            usize,
+                                                            usize) {
+        box move |state| doit(f, state, (a, b), (c, d))
+    } else {
+        panic!("bad input");
+    }
+}
+
 fn light_show(input: &str) -> usize {
     let mut state = box [[false; 1000]; 1000];
 
@@ -24,30 +55,8 @@ fn light_show(input: &str) -> usize {
     let toggle = |light: &mut bool| *light = !*light;
 
     for line in input.lines() {
-        let mut words = line.split_whitespace();
-
-        let f: &(Fn(&mut bool)) = match words.next() {
-            Some("turn") => {
-                match words.next() {
-                    Some("on") => &on,
-                    Some("off") => &off,
-                    _ => panic!("bad input"),
-                }
-            }
-            Some("toggle") => &toggle,
-            _ => panic!("bad input"),
-        };
-
-        if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&words.collect::<String>(),
-                                                                "{d},{d} through {d},{d}",
-                                                                usize,
-                                                                usize,
-                                                                usize,
-                                                                usize) {
-            doit(f, &mut state, (a, b), (c, d));
-        } else {
-            panic!("bad input");
-        }
+        let f = parse_input_line(line, &on, &off, &toggle);
+        f(&mut state);
     }
     state.iter()
          .flat_map(|inner| inner.iter())
@@ -67,30 +76,8 @@ fn bright_show(input: &str) -> u32 {
     let toggle = |light: &mut u32| *light += 2;
 
     for line in input.lines() {
-        let mut words = line.split_whitespace();
-
-        let f: &(Fn(&mut u32)) = match words.next() {
-            Some("turn") => {
-                match words.next() {
-                    Some("on") => &on,
-                    Some("off") => &off,
-                    _ => panic!("bad input"),
-                }
-            }
-            Some("toggle") => &toggle,
-            _ => panic!("bad input"),
-        };
-
-        if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&words.collect::<String>(),
-                                                                "{d},{d} through {d},{d}",
-                                                                usize,
-                                                                usize,
-                                                                usize,
-                                                                usize) {
-            doit(f, &mut state, (a, b), (c, d));
-        } else {
-            panic!("bad input");
-        }
+        let f = parse_input_line(line, &on, &off, &toggle);
+        f(&mut state);
     }
     state.iter()
          .flat_map(|inner| inner.iter())
