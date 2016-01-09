@@ -16,47 +16,60 @@ fn doit<F, L>(f: F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize,
     }
 }
 
-fn parse_input_line<'a, L>(line: &str,
-                           on: &'a Fn(&mut L),
-                           off: &'a Fn(&mut L),
-                           toggle: &'a Fn(&mut L))
-                           -> Box<Fn(&mut [[L; 1000]; 1000]) + 'a> {
-    let mut words = line.split_whitespace();
+enum Cmnd {
+    On((usize, usize), (usize, usize)),
+    Off((usize, usize), (usize, usize)),
+    Toggle((usize, usize), (usize, usize)),
+}
 
-    let f: (&Fn(&mut L)) = match words.next() {
-        Some("turn") => {
-            match words.next() {
-                Some("on") => on,
-                Some("off") => off,
-                _ => panic!("bad input"),
-            }
-        }
-        Some("toggle") => toggle,
-        _ => panic!("bad input"),
-    };
-
-    if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&words.collect::<String>(),
+fn parse_coords(line: &str) -> ((usize, usize), (usize, usize)) {
+    if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&line,
                                                             "{d},{d} through {d},{d}",
                                                             usize,
                                                             usize,
                                                             usize,
                                                             usize) {
-        box move |state| doit(f, state, (a, b), (c, d))
+        ((a, b), (c, d))
     } else {
         panic!("bad input");
+    }
+}
+
+fn parse_cmnd(line: &str) -> Cmnd {
+    let mut words = line.split_whitespace();
+
+    match words.next() {
+        Some("turn") => {
+            match words.next() {
+                Some("on") => {
+                    let c = parse_coords(&words.collect::<String>());
+                    Cmnd::On(c.0, c.1)
+                }
+                Some("off") => {
+                    let c = parse_coords(&words.collect::<String>());
+                    Cmnd::Off(c.0, c.1)
+                }
+                _ => panic!("bad input"),
+            }
+        }
+        Some("toggle") => {
+            let c = parse_coords(&words.collect::<String>());
+            Cmnd::Toggle(c.0, c.1)
+        }
+        _ => panic!("bad input"),
     }
 }
 
 fn light_show(input: &str) -> usize {
     let mut state = box [[false; 1000]; 1000];
 
-    let on = |light: &mut bool| *light = true;
-    let off = |light: &mut bool| *light = false;
-    let toggle = |light: &mut bool| *light = !*light;
-
     for line in input.lines() {
-        let f = parse_input_line(line, &on, &off, &toggle);
-        f(&mut state);
+        let cmnd = parse_cmnd(line);
+        match cmnd {
+            Cmnd::On(a, b) => doit(|light: &mut bool| *light = true, &mut state, a, b),
+            Cmnd::Off(a, b) => doit(|light: &mut bool| *light = false, &mut state, a, b),
+            Cmnd::Toggle(a, b) => doit(|light: &mut bool| *light = !*light, &mut state, a, b),
+        }
     }
     state.iter()
          .flat_map(|inner| inner.iter())
@@ -76,8 +89,12 @@ fn bright_show(input: &str) -> u32 {
     let toggle = |light: &mut u32| *light += 2;
 
     for line in input.lines() {
-        let f = parse_input_line(line, &on, &off, &toggle);
-        f(&mut state);
+        let cmnd = parse_cmnd(line);
+        match cmnd {
+            Cmnd::On(a, b) => doit(&on, &mut state, a, b),
+            Cmnd::Off(a, b) => doit(&off, &mut state, a, b),
+            Cmnd::Toggle(a, b) => doit(&toggle, &mut state, a, b),
+        }
     }
     state.iter()
          .flat_map(|inner| inner.iter())
