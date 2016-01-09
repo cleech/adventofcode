@@ -1,6 +1,3 @@
-extern crate pcre;
-use self::pcre::Pcre;
-
 const DATA: &'static str = include_str!("../data/input_6.txt");
 
 pub fn main() -> Vec<String> {
@@ -9,7 +6,7 @@ pub fn main() -> Vec<String> {
     vec![s1.to_string(), s2.to_string()]
 }
 
-fn doit<F, L>(f: &F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize, usize))
+fn doit<F, L>(f: F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize, usize))
     where F: Fn(&mut L)
 {
     for x in a.0..(b.0 + 1) {
@@ -20,7 +17,6 @@ fn doit<F, L>(f: &F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize
 }
 
 fn light_show(input: &str) -> usize {
-    let mut coords = Pcre::compile(r"(\d+),(\d+) through (\d+),(\d+)").unwrap();
     let mut state = box [[false; 1000]; 1000];
 
     let on = |light: &mut bool| *light = true;
@@ -28,17 +24,29 @@ fn light_show(input: &str) -> usize {
     let toggle = |light: &mut bool| *light = !*light;
 
     for line in input.lines() {
-        let m = coords.exec(line).unwrap();
-        let a = m.group(1).parse::<usize>().unwrap();
-        let b = m.group(2).parse::<usize>().unwrap();
-        let c = m.group(3).parse::<usize>().unwrap();
-        let d = m.group(4).parse::<usize>().unwrap();
+        let mut words = line.split_whitespace();
 
-        match &line[0..7] {
-            "turn on" => doit(&on, &mut state, (a, b), (c, d)),
-            "turn of" => doit(&off, &mut state, (a, b), (c, d)),
-            "toggle " => doit(&toggle, &mut state, (a, b), (c, d)),
-            _ => panic!("invalid input"),
+        let f: &(Fn(&mut bool)) = match words.next() {
+            Some("turn") => {
+                match words.next() {
+                    Some("on") => &on,
+                    Some("off") => &off,
+                    _ => panic!("bad input"),
+                }
+            }
+            Some("toggle") => &toggle,
+            _ => panic!("bad input"),
+        };
+
+        if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&words.collect::<String>(),
+                                                                "{d},{d} through {d},{d}",
+                                                                usize,
+                                                                usize,
+                                                                usize,
+                                                                usize) {
+            doit(f, &mut state, (a, b), (c, d));
+        } else {
+            panic!("bad input");
         }
     }
     state.iter()
@@ -47,15 +55,7 @@ fn light_show(input: &str) -> usize {
          .count()
 }
 
-#[test]
-fn test_light_show() {
-    assert_eq!(light_show("turn on 0,0 through 999,999"), 1000 * 1000);
-    assert_eq!(light_show("toggle 0,0 through 999,0"), 1000);
-    assert_eq!(light_show("turn off 499,499 through 500,500"), 0);
-}
-
 fn bright_show(input: &str) -> u32 {
-    let mut coords = Pcre::compile(r"(\d+),(\d+) through (\d+),(\d+)").unwrap();
     let mut state = box [[0u32; 1000]; 1000];
 
     let on = |light: &mut u32| *light += 1;
@@ -67,17 +67,29 @@ fn bright_show(input: &str) -> u32 {
     let toggle = |light: &mut u32| *light += 2;
 
     for line in input.lines() {
-        let m = coords.exec(line).unwrap();
-        let a = m.group(1).parse::<usize>().unwrap();
-        let b = m.group(2).parse::<usize>().unwrap();
-        let c = m.group(3).parse::<usize>().unwrap();
-        let d = m.group(4).parse::<usize>().unwrap();
+        let mut words = line.split_whitespace();
 
-        match &line[0..7] {
-            "turn on" => doit(&on, &mut state, (a, b), (c, d)),
-            "turn of" => doit(&off, &mut state, (a, b), (c, d)),
-            "toggle " => doit(&toggle, &mut state, (a, b), (c, d)),
-            _ => panic!("invalid input"),
+        let f: &(Fn(&mut u32)) = match words.next() {
+            Some("turn") => {
+                match words.next() {
+                    Some("on") => &on,
+                    Some("off") => &off,
+                    _ => panic!("bad input"),
+                }
+            }
+            Some("toggle") => &toggle,
+            _ => panic!("bad input"),
+        };
+
+        if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&words.collect::<String>(),
+                                                                "{d},{d} through {d},{d}",
+                                                                usize,
+                                                                usize,
+                                                                usize,
+                                                                usize) {
+            doit(f, &mut state, (a, b), (c, d));
+        } else {
+            panic!("bad input");
         }
     }
     state.iter()
@@ -85,8 +97,20 @@ fn bright_show(input: &str) -> u32 {
          .sum()
 }
 
-#[test]
-fn test_bright_show() {
-    assert_eq!(bright_show("turn on 0,0 through 0,0"), 1);
-    assert_eq!(bright_show("toggle 0,0 through 999,999"), 2 * 1000 * 1000);
+#[cfg(test)]
+mod test {
+    use super::{light_show, bright_show};
+
+    #[test]
+    fn test_light_show() {
+        assert_eq!(light_show("turn on 0,0 through 999,999"), 1000 * 1000);
+        assert_eq!(light_show("toggle 0,0 through 999,0"), 1000);
+        assert_eq!(light_show("turn off 499,499 through 500,500"), 0);
+    }
+
+    #[test]
+    fn test_bright_show() {
+        assert_eq!(bright_show("turn on 0,0 through 0,0"), 1);
+        assert_eq!(bright_show("toggle 0,0 through 999,999"), 2 * 1000 * 1000);
+    }
 }
