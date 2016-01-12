@@ -127,7 +127,7 @@ fn verify_my_answers() {
     assert_eq!(run_one(7).unwrap(), ["956", "40149"]);
     assert_eq!(run_one(8).unwrap(), ["1350", "2085"]);
     assert_eq!(run_one(9).unwrap(), ["117", "909"]);
-    assert_eq!(run_one(10).unwrap(), ["439880", "6230578"]);
+    assert_eq!(run_one(10).unwrap(), ["329356", "4666278"]);
     assert_eq!(run_one(11).unwrap(), ["vzbxxyzz", "vzcaabcc"]);
     assert_eq!(run_one(12).unwrap(), ["191164", "87842"]);
     assert_eq!(run_one(13).unwrap(), ["733", "725"]);
