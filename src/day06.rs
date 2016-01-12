@@ -64,14 +64,13 @@ fn light_show(input: &str) -> usize {
     let mut state = box [[false; 1000]; 1000];
 
     for line in input.lines() {
-        let cmnd = parse_cmnd(line);
-        let _ = cmnd.map(|c| {
-            match c {
+        if let Ok(cmnd) = parse_cmnd(line) {
+            match cmnd {
                 Cmnd::On(a, b) => doit(|light: &mut bool| *light = true, &mut state, a, b),
                 Cmnd::Off(a, b) => doit(|light: &mut bool| *light = false, &mut state, a, b),
                 Cmnd::Toggle(a, b) => doit(|light: &mut bool| *light = !*light, &mut state, a, b),
             }
-        });
+        }
     }
     state.iter()
          .flat_map(|inner| inner.iter())
@@ -82,23 +81,23 @@ fn light_show(input: &str) -> usize {
 fn bright_show(input: &str) -> u32 {
     let mut state = box [[0u32; 1000]; 1000];
 
-    let on = |light: &mut u32| *light += 1;
-    let off = |light: &mut u32| {
-        if *light > 0 {
-            *light -= 1
-        }
-    };
-    let toggle = |light: &mut u32| *light += 2;
-
     for line in input.lines() {
-        let cmnd = parse_cmnd(line);
-        let _ = cmnd.map(|c| {
-            match c {
-                Cmnd::On(a, b) => doit(&on, &mut state, a, b),
-                Cmnd::Off(a, b) => doit(&off, &mut state, a, b),
-                Cmnd::Toggle(a, b) => doit(&toggle, &mut state, a, b),
+        if let Ok(cmnd) = parse_cmnd(line) {
+            match cmnd {
+                Cmnd::On(a, b) => doit(|light: &mut u32| *light += 1, &mut state, a, b),
+                Cmnd::Off(a, b) => {
+                    doit(|light: &mut u32| {
+                             if *light > 0 {
+                                 *light -= 1
+                             }
+                         },
+                         &mut state,
+                         a,
+                         b)
+                }
+                Cmnd::Toggle(a, b) => doit(|light: &mut u32| *light += 2, &mut state, a, b),
             }
-        });
+        }
     }
     state.iter()
          .flat_map(|inner| inner.iter())
