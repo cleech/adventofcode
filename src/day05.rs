@@ -9,12 +9,30 @@ pub fn main() -> Vec<String> {
 }
 
 fn nice(s: &str) -> bool {
-    let has_three_vowels = |s: &str| s.chars().filter(|c| "aeiou".contains(*c)).count() >= 3;
-    let has_doubles = |s: &str| s.as_bytes().windows(2).any(|w| w[0] == w[1]);
+    let has_three_vowels = |s: &str| {
+        s.chars()
+         .filter(|&c| {
+             match c {
+                 'a' | 'e' | 'i' | 'o' | 'u' => true,
+                 _ => false,
+             }
+         })
+         .count() >= 3
+    };
+    let has_doubles = |s: &str| {
+        s.as_bytes()
+         .windows(2)
+         .any(|w| w[0] == w[1])
+    };
     let has_bad_pairs = |s: &str| {
         s.as_bytes()
          .windows(2)
-         .any(|w| ["ab", "cd", "pq", "xy"].contains(&(unsafe { str::from_utf8_unchecked(w) })))
+         .any(|w| {
+             match unsafe { str::from_utf8_unchecked(w) } {
+                 "ab" | "cd" | "pq" | "xy" => true,
+                 _ => false,
+             }
+         })
     };
     has_three_vowels(s) && has_doubles(s) && !has_bad_pairs(s)
 }
@@ -28,10 +46,17 @@ fn nice_count(input: &str) -> usize {
 fn nicer(s: &str) -> bool {
     let has_double_pairs = |s: &str| {
         let bs = s.as_bytes();
-        (0..bs.len() - 3)
-            .any(|n| bs[n + 2..].windows(2).any(|w| w[0] == bs[n] && w[1] == bs[n + 1]))
+        (0..bs.len() - 3).any(|n| {
+            bs[n + 2..]
+                .windows(2)
+                .any(|w| w[0] == bs[n] && w[1] == bs[n + 1])
+        })
     };
-    let has_sandwich = |s: &str| s.as_bytes().windows(3).any(|w| w[0] == w[2]);
+    let has_sandwich = |s: &str| {
+        s.as_bytes()
+         .windows(3)
+         .any(|w| w[0] == w[2])
+    };
     has_double_pairs(s) && has_sandwich(s)
 }
 
