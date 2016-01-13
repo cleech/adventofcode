@@ -5,7 +5,7 @@ const DATA: &'static str = include_str!("../data/input_22.txt");
 
 pub fn main() -> Vec<String> {
     let hero = Character::wizard();
-    let boss = Character::boss(DATA);
+    let boss = Character::boss(DATA).unwrap();
     let s1 = find_best_solution(&hero, &boss, 0, isize::MAX);
     let s2 = find_best_solution(&hero, &boss, 1, isize::MAX);
     vec![s1.unwrap().to_string(), s2.unwrap().to_string()]
@@ -121,15 +121,23 @@ impl Character {
         }
     }
 
-    fn boss(data: &str) -> Character {
+    fn boss(data: &str) -> Option<Character> {
         let mut lines = data.lines();
-        let hp = scan_fmt!(lines.next().unwrap(), "Hit Points: {}", isize).unwrap();
-        let damage = scan_fmt!(lines.next().unwrap(), "Damage: {}", isize).unwrap();
 
-        Character {
-            hp: hp,
-            damage: damage,
-            ..Character::new()
+        if let (Some(hp), Some(damage)) = (lines.next().map_or(None, |l| {
+            scan_fmt!(l, "Hit Points: {}", isize)
+        }),
+                                           lines.next().map_or(None, |l| {
+            scan_fmt!(l, "Damage: {}", isize)
+        })) {
+
+            Some(Character {
+                hp: hp,
+                damage: damage,
+                ..Character::new()
+            })
+        } else {
+            None
         }
     }
 
