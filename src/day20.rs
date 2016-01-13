@@ -9,7 +9,6 @@ fn part1(target: usize) -> usize {
     // each house[n] will get 10 * n gifts from elf[n]
     // so target/10 is a safe upper bound for the number of houses (and elves)
     let max_houses = target / 10;
-    // start off with each house having one present already
     let mut houses = vec![0; max_houses];
 
     for elf in 1..max_houses {

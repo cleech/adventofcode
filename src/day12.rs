@@ -15,15 +15,15 @@ fn read_json(input: &str) -> i64 {
 }
 
 fn total_numbers(data: &Value) -> i64 {
-    match data {
-        &Value::Null => 0,
-        &Value::Bool(_) => 0,
-        &Value::I64(n) => n,
-        &Value::U64(n) => n as i64,
-        &Value::F64(_) => panic!("god I hope not"),
-        &Value::String(_) => 0,
-        &Value::Array(ref vec) => vec.iter().map(|v| total_numbers(v)).sum(),
-        &Value::Object(ref bt) => bt.iter().map(|(_, v)| total_numbers(v)).sum(),
+    match *data {
+        Value::Null => 0,
+        Value::Bool(_) => 0,
+        Value::I64(n) => n,
+        Value::U64(n) => n as i64,
+        Value::F64(_) => panic!("god I hope not"),
+        Value::String(_) => 0,
+        Value::Array(ref vec) => vec.iter().map(|v| total_numbers(v)).sum(),
+        Value::Object(ref bt) => bt.iter().map(|(_, v)| total_numbers(v)).sum(),
     }
 }
 
@@ -33,15 +33,15 @@ fn part_2(input: &str) -> i64 {
 }
 
 fn _part_2(data: &Value) -> i64 {
-    match data {
-        &Value::Null => 0,
-        &Value::Bool(_) => 0,
-        &Value::I64(n) => n,
-        &Value::U64(n) => n as i64,
-        &Value::F64(_) => panic!("god I hope not"),
-        &Value::String(_) => 0,
-        &Value::Array(ref vec) => vec.iter().map(|v| _part_2(v)).sum(),
-        &Value::Object(ref bt) => {
+    match *data {
+        Value::Null => 0,
+        Value::Bool(_) => 0,
+        Value::I64(n) => n,
+        Value::U64(n) => n as i64,
+        Value::F64(_) => panic!("god I hope not"),
+        Value::String(_) => 0,
+        Value::Array(ref vec) => vec.iter().map(|v| _part_2(v)).sum(),
+        Value::Object(ref bt) => {
             if bt.iter().any(|(_, v)| v.as_string().map(|s| s == "red").unwrap_or(false)) {
                 0
             } else {

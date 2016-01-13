@@ -102,14 +102,21 @@ fn encode(input: &str) -> String {
         .collect()
 }
 
-#[test]
-fn test_day8() {
-    assert_eq!(decode(r#""Hello""#), r"Hello");
-    assert_eq!(decode(r#""\\""#), r"\");
-    assert_eq!(decode(r#""\"""#), r#"""#);
-    assert_eq!(decode(r#""\x27""#), "'");
-    assert_eq!(part1(&([r#""""#, r#""abc""#, r#""aaa\"aaa""#, r#""\x27""#].join("\n"))), 12);
-    assert_eq!(part2(&([r#""""#, r#""abc""#, r#""aaa\"aaa""#, r#""\x27""#].join("\n"))), 19);
-    assert_eq!(decode(r#""\xbb""#), "\u{bb}");
-    assert_eq!(encode("\u{bb}"), r#""\xbb""#);
+#[cfg(test)]
+mod test {
+    use super::{decode, encode, part1, part2};
+
+    #[test]
+    fn test_day8() {
+        assert_eq!(decode(r#""Hello""#), r"Hello");
+        assert_eq!(decode(r#""\\""#), r"\");
+        assert_eq!(decode(r#""\"""#), r#"""#);
+        assert_eq!(decode(r#""\x27""#), "'");
+        assert_eq!(part1(&([r#""""#, r#""abc""#, r#""aaa\"aaa""#, r#""\x27""#].join("\n"))),
+                   12);
+        assert_eq!(part2(&([r#""""#, r#""abc""#, r#""aaa\"aaa""#, r#""\x27""#].join("\n"))),
+                   19);
+        assert_eq!(decode(r#""\xbb""#), "\u{bb}");
+        assert_eq!(encode("\u{bb}"), r#""\xbb""#);
+    }
 }

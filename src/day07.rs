@@ -207,26 +207,31 @@ fn part2(input: &str, target: &str, force: &str, v: u16) -> u16 {
     c.eval(&Wire(target.to_string())).unwrap()
 }
 
-#[test]
-fn test_circuit() {
-    let cs = ["123 -> x",
-              "456 -> y",
-              "x AND y -> d",
-              "x OR y -> e",
-              "x LSHIFT 2 -> f",
-              "y RSHIFT 2 -> g",
-              "NOT x -> h",
-              "NOT y -> i"]
-                 .join("\n");
-    let mut c = Circuit::from_str(&cs);
-    assert_eq!(c.eval(&Wire("d".to_string())), Some(72));
-    assert_eq!(c.eval(&Wire("e".to_string())), Some(507));
-    assert_eq!(c.eval(&Wire("f".to_string())), Some(492));
-    assert_eq!(c.eval(&Wire("g".to_string())), Some(114));
-    assert_eq!(c.eval(&Wire("h".to_string())), Some(65412));
-    assert_eq!(c.eval(&Wire("i".to_string())), Some(65079));
-    assert_eq!(c.eval(&Wire("x".to_string())), Some(123));
-    assert_eq!(c.eval(&Wire("y".to_string())), Some(456));
+#[cfg(test)]
+mod test {
+    use super::{Circuit,Wire};
+
+    #[test]
+    fn test_circuit() {
+        let cs = ["123 -> x",
+                  "456 -> y",
+                  "x AND y -> d",
+                  "x OR y -> e",
+                  "x LSHIFT 2 -> f",
+                  "y RSHIFT 2 -> g",
+                  "NOT x -> h",
+                  "NOT y -> i"]
+                     .join("\n");
+        let mut c = Circuit::from_str(&cs);
+        assert_eq!(c.eval(&Wire("d".to_string())), Some(72));
+        assert_eq!(c.eval(&Wire("e".to_string())), Some(507));
+        assert_eq!(c.eval(&Wire("f".to_string())), Some(492));
+        assert_eq!(c.eval(&Wire("g".to_string())), Some(114));
+        assert_eq!(c.eval(&Wire("h".to_string())), Some(65412));
+        assert_eq!(c.eval(&Wire("i".to_string())), Some(65079));
+        assert_eq!(c.eval(&Wire("x".to_string())), Some(123));
+        assert_eq!(c.eval(&Wire("y".to_string())), Some(456));
+    }
 }
 
 const DATA: &'static str = include_str!("../data/input_7.txt");

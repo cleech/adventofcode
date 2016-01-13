@@ -11,12 +11,17 @@ pub fn main() -> Vec<String> {
     vec![part1.b.to_string(), part2.b.to_string()]
 }
 
-#[test]
-fn test_day23() {
-    let source = ["inc a", "jio a, +2", "tpl a", "inc a"].join("\n");
-    let mut p = Program::compile(&source).unwrap();
-    p.run();
-    assert_eq!(p.a, 2);
+#[cfg(test)]
+mod test {
+    use super::Program;
+
+    #[test]
+    fn test_day23() {
+        let source = ["inc a", "jio a, +2", "tpl a", "inc a"].join("\n");
+        let mut p = Program::compile(&source).unwrap();
+        p.run();
+        assert_eq!(p.a, 2);
+    }
 }
 
 #[derive(Debug)]

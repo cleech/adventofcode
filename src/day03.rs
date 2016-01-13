@@ -38,16 +38,21 @@ fn multi_santa(input: &str, how_many: usize) -> usize {
         .count()
 }
 
-#[test]
-fn test_house_count() {
-    assert_eq!(multi_santa(">", 1), 2);
-    assert_eq!(multi_santa("^>v<", 1), 4);
-    assert_eq!(multi_santa("^v^v^v^v^v", 1), 2);
-}
+#[cfg(test)]
+mod test {
+    use super::multi_santa;
 
-#[test]
-fn test_robo_santa() {
-    assert_eq!(multi_santa("^v", 2), 3);
-    assert_eq!(multi_santa("^>v<", 2), 3);
-    assert_eq!(multi_santa("^v^v^v^v^v", 2), 11);
+    #[test]
+    fn test_house_count() {
+        assert_eq!(multi_santa(">", 1), 2);
+        assert_eq!(multi_santa("^>v<", 1), 4);
+        assert_eq!(multi_santa("^v^v^v^v^v", 1), 2);
+    }
+
+    #[test]
+    fn test_robo_santa() {
+        assert_eq!(multi_santa("^v", 2), 3);
+        assert_eq!(multi_santa("^>v<", 2), 3);
+        assert_eq!(multi_santa("^v^v^v^v^v", 2), 11);
+    }
 }

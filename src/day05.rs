@@ -68,22 +68,22 @@ fn nicer_count(input: &str) -> usize {
 
 #[cfg(test)]
 mod test {
-    use super::{nice_count, nicer_count};
+    use super::{nice, nicer};
 
     #[test]
     fn test_nice_string() {
-        assert_eq!(nice_count("ugknbfddgicrmopn"), 1);
-        assert_eq!(nice_count("aaa"), 1);
-        assert_eq!(nice_count("jchzalrnumimnmhp"), 0);
-        assert_eq!(nice_count("haegwjzuvuyypxyu"), 0);
-        assert_eq!(nice_count("dvszwmarrgswjxmb"), 0);
+        assert_eq!(nice("ugknbfddgicrmopn"), true);
+        assert_eq!(nice("aaa"), true);
+        assert_eq!(nice("jchzalrnumimnmhp"), false);
+        assert_eq!(nice("haegwjzuvuyypxyu"), false);
+        assert_eq!(nice("dvszwmarrgswjxmb"), false);
     }
 
     #[test]
     fn test_nicer_string() {
-        assert_eq!(nicer_count("qjhvhtzxzqqjkmpb"), 1);
-        assert_eq!(nicer_count("xxyxx"), 1);
-        assert_eq!(nicer_count("uurcxstgmygtbstg"), 0);
-        assert_eq!(nicer_count("eodomkazucvgmuy"), 0);
+        assert_eq!(nicer("qjhvhtzxzqqjkmpb"), true);
+        assert_eq!(nicer("xxyxx"), true);
+        assert_eq!(nicer("uurcxstgmygtbstg"), false);
+        assert_eq!(nicer("eodomkazucvgmuy"), false);
     }
 }
