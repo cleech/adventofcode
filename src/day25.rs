@@ -1,19 +1,43 @@
+const DATA: &'static str = include_str!("../data/input_25.txt");
+const SEED: u64 = 20151125;
+const BASE: u64 = 252533;
+const MODULUS: u64 = 33554393;
+
 pub fn main() -> Vec<String> {
-    let index = coord_to_index(2981, 3075);
-    let code = 20151125 * mod_exp(252533, index as u64, 33554393) % 33554393;
-    vec![code.to_string()]
+    if let Some((row, col)) = parse_input(DATA.trim()) {
+        let index = coord_to_index(row, col);
+        let code = SEED * mod_exp(BASE, index, MODULUS) % MODULUS;
+        vec![code.to_string()]
+    } else {
+        vec![]
+    }
 }
 
-fn coord_to_index(row: usize, col: usize) -> usize {
-    (1..(row + col - 1)).sum::<usize>() + col - 1
+fn parse_input(input: &str) -> Option<(u64, u64)> {
+    match &input.split_whitespace().collect::<Vec<_>>()[..] {
+        [.., "row", r, "column", c] => {
+            r.trim_matches(',')
+             .parse::<u64>()
+             .and_then(|r| {
+                 c.trim_matches('.')
+                  .parse::<u64>()
+                  .map(|c| (r, c))
+             })
+             .ok()
+        }
+        _ => None,
+    }
 }
 
-// calculation using modular exponentiation
+fn coord_to_index(row: u64, col: u64) -> u64 {
+    (1..(row + col - 1)).sum::<u64>() + col - 1
+}
 
+// modular exponentiation by repeated squaring
 fn mod_exp(base: u64, exponent: u64, modulus: u64) -> u64 {
     match exponent {
         0 => 1,
-        1 => base,
+        1 => base % modulus,
         e if e % 2 == 0 => {
             let n = mod_exp(base, e >> 1, modulus);
             n * n % modulus
@@ -22,23 +46,21 @@ fn mod_exp(base: u64, exponent: u64, modulus: u64) -> u64 {
     }
 }
 
-#[cfg(iterator)]
 // this was my original iterator approach, much slower but generates all of the intermediate values
+#[cfg(day25_iterator)]
 mod iterator {
+    use super::{SEED, BASE, MODULUS};
+
     struct CodeGen {
         running: bool,
         last: u64,
     }
 
     impl CodeGen {
-        const FIRST: u64 = 20151125;
-        const MULT: u64 = 252533;
-        const DIV: u64 = 33554393;
-
         fn new() -> CodeGen {
             CodeGen {
                 running: false,
-                last: CodeGen::FIRST,
+                last: SEED,
             }
         }
     }
@@ -48,7 +70,7 @@ mod iterator {
 
         fn next(&mut self) -> Option<u64> {
             if self.running {
-                self.last = (self.last * CodeGen::MULT) % CodeGen::DIV;
+                self.last = (self.last * BASE) % MODULUS;
             } else {
                 self.running = true;
             }

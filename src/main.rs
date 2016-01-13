@@ -1,6 +1,7 @@
 #![feature(iter_arith)] // sum is not stable
 #![feature(box_syntax)]
 #![feature(associated_consts)]
+#![feature(advanced_slice_patterns)]
 #![feature(time2)]
 #![cfg_attr(test, feature(test))]
 
@@ -116,7 +117,6 @@ fn run_one(day: u8) -> io::Result<Vec<String>> {
 }
 
 #[test]
-#[ignore]
 fn verify_my_answers() {
     assert_eq!(run_one(1).unwrap(), ["74", "1795"]);
     assert_eq!(run_one(2).unwrap(), ["1586300", "3737498"]);
