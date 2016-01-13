@@ -1,15 +1,19 @@
 use std::cmp::{min, max};
 use std::hash::{Hash, Hasher};
 use std::collections::{HashSet, HashMap};
+use std::ops::Add;
+
+extern crate itertools;
+use self::itertools::Itertools;
 
 extern crate permutohedron;
 
 const DATA: &'static str = include_str!("../data/input_9.txt");
 
 pub fn main() -> Vec<String> {
-    let map = RouteMap::build(DATA);
-    let s1 = map.find_shortest_route();
-    let s2 = map.find_longest_route();
+    let map = RouteMap::build(DATA).unwrap();
+    let s1 = map.find_shortest_route().unwrap();
+    let s2 = map.find_longest_route().unwrap();
     vec![s1.to_string(), s2.to_string()]
 }
 
@@ -29,9 +33,14 @@ impl<T: Hash + Ord> Hash for UnorderedPair<T> {
     }
 }
 
-#[test]
-fn test_unordered_pair() {
-    assert_eq!(UnorderedPair(0, 1), UnorderedPair(1, 0));
+#[cfg(test)]
+mod test_unordered_pairs {
+    use super::UnorderedPair;
+
+    #[test]
+    fn test_unordered_pair() {
+        assert_eq!(UnorderedPair(0, 1), UnorderedPair(1, 0));
+    }
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -41,19 +50,20 @@ struct Route {
 }
 
 impl Route {
-    fn from_str(route: &str) -> Route {
-        let (src, dst, distance) = scan_fmt!(route, "{} to {} = {d}", String, String, usize);
-        Route {
-            cities: UnorderedPair(src.unwrap(), dst.unwrap()),
-            distance: distance.unwrap(),
+    fn from_str(route: &str) -> Result<Route, &'static str> {
+        if let (Some(src), Some(dst), Some(distance)) = scan_fmt!(route,
+                                                                  "{} to {} = {d}",
+                                                                  String,
+                                                                  String,
+                                                                  usize) {
+            Ok(Route {
+                cities: UnorderedPair(src, dst),
+                distance: distance,
+            })
+        } else {
+            Err("parse error on route")
         }
     }
-}
-
-#[test]
-fn test_route_eq() {
-    assert_eq!(Route::from_str("Chicago to Detroit = 282"),
-               Route::from_str("Detroit to Chicago = 282"));
 }
 
 struct RouteMap {
@@ -62,50 +72,68 @@ struct RouteMap {
 }
 
 impl RouteMap {
-    fn build(input: &str) -> RouteMap {
+    fn build(input: &str) -> Result<RouteMap, &'static str> {
         let mut map = HashMap::new();
         let mut cities = HashSet::new();
 
         for line in input.lines() {
-            let r = Route::from_str(line);
-            cities.insert(r.cities.0.clone());
-            cities.insert(r.cities.1.clone());
-            map.insert(r.cities, r.distance);
+            match Route::from_str(line) {
+                Ok(r) => {
+                    cities.insert(r.cities.0.clone());
+                    cities.insert(r.cities.1.clone());
+                    map.insert(r.cities, r.distance);
+                }
+                Err(e) => return Err(e),
+            }
         }
-        RouteMap {
+        Ok(RouteMap {
             cities: cities,
             routes: map,
-        }
+        })
     }
 
     fn lookup(&self, a: &str, b: &str) -> Option<&usize> {
         self.routes.get(&UnorderedPair(a.to_owned(), b.to_owned()))
     }
 
-    fn get_total_route_distance(&self, stops: &[&String]) -> usize {
+    fn get_total_route_distance(&self, stops: &[&String]) -> Option<usize> {
         stops.windows(2)
-             .map(|w| self.lookup(&w[0], &w[1]).unwrap())
-             .sum()
+             .map(|w| self.lookup(&w[0], &w[1]))
+             .fold_options(0, Add::add)
     }
 
-    fn find_shortest_route(&self) -> usize {
+    fn find_shortest_route(&self) -> Option<usize> {
         let mut data = self.cities.iter().collect::<Vec<_>>();
-        let heap = permutohedron::Heap::new(&mut data);
-        heap.map(|p| self.get_total_route_distance(&p[..])).min().unwrap()
+        let permutations = permutohedron::Heap::new(&mut data);
+        permutations.filter_map(|p| self.get_total_route_distance(&p[..])).min()
+
     }
 
-    fn find_longest_route(&self) -> usize {
+    fn find_longest_route(&self) -> Option<usize> {
         let mut data = self.cities.iter().collect::<Vec<_>>();
-        let heap = permutohedron::Heap::new(&mut data);
-        heap.map(|p| self.get_total_route_distance(&p[..])).max().unwrap()
+        let permutations = permutohedron::Heap::new(&mut data);
+        permutations.filter_map(|p| self.get_total_route_distance(&p[..])).max()
     }
 }
 
-#[test]
-fn test_day9() {
-    let routes = ["London to Dublin = 464", "London to Belfast = 518", "Dublin to Belfast = 141"]
-                     .join("\n");
-    let map = RouteMap::build(&routes);
-    let d = map.find_shortest_route();
-    assert_eq!(d, 605);
+#[cfg(test)]
+mod test {
+    use super::{Route, RouteMap};
+
+    #[test]
+    fn test_route_eq() {
+        assert_eq!(Route::from_str("Chicago to Detroit = 282"),
+                   Route::from_str("Detroit to Chicago = 282"));
+    }
+
+    #[test]
+    fn test_day9() {
+        let routes = ["London to Dublin = 464",
+                      "London to Belfast = 518",
+                      "Dublin to Belfast = 141"]
+                         .join("\n");
+        let map = RouteMap::build(&routes).unwrap();
+        let d = map.find_shortest_route();
+        assert_eq!(d, Some(605));
+    }
 }
