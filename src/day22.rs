@@ -1,12 +1,13 @@
-use std::cmp::max;
+use std::cmp::{max, min};
+use std::isize;
 
 const DATA: &'static str = include_str!("../data/input_22.txt");
 
 pub fn main() -> Vec<String> {
     let hero = Character::wizard();
     let boss = Character::boss(DATA);
-    let s1 = find_best_solution(&hero, &boss, 0);
-    let s2 = find_best_solution(&hero, &boss, 1);
+    let s1 = find_best_solution(&hero, &boss, 0, isize::MAX);
+    let s2 = find_best_solution(&hero, &boss, 1, isize::MAX);
     vec![s1.unwrap().to_string(), s2.unwrap().to_string()]
 }
 
@@ -207,11 +208,8 @@ impl Character {
     }
 }
 
-// search all valid play strategies, stopping with a sane max mana spend of 2000
-// based on a winning strategy of casting the most expensive spell each time
-
-fn find_best_solution(h: &Character, b: &Character, hard: isize) -> Option<isize> {
-    if h.mana_spent >= 2000 {
+fn find_best_solution(h: &Character, b: &Character, hard: isize, mut best: isize) -> Option<isize> {
+    if h.mana_spent >= best {
         return None;
     }
 
@@ -236,7 +234,7 @@ fn find_best_solution(h: &Character, b: &Character, hard: isize) -> Option<isize
 
     h1.valid_spells()
         .iter()
-        .map(|spell| {
+        .filter_map(|spell| {
             let mut hero = h1.clone();
             let mut boss = b1.clone();
 
@@ -269,11 +267,11 @@ fn find_best_solution(h: &Character, b: &Character, hard: isize) -> Option<isize
                 return None;
             }
 
-            find_best_solution(&hero, &boss, hard)
+            let r = find_best_solution(&hero, &boss, hard, best);
+            if let Some(new_best) = r {
+               best = min(best, new_best);
+            }
+            r
         })
-    .filter(|o| o.is_some())
-        .map(|o| o.unwrap())
-        .collect::<Vec<_>>()
-        .into_iter()
         .min()
 }
