@@ -12,7 +12,7 @@ pub fn main() -> Vec<String> {
 }
 
 fn strbump(old: &str) -> String {
-    old.chars()
+    let mut v = old.chars()
        .rev()
        .scan(1, |carry, c| {
            let old = (c as u8) - ('a' as u8);
@@ -22,12 +22,11 @@ fn strbump(old: &str) -> String {
            } else {
                *carry = 0;
            }
-           Some((next + ('a' as u8)) as char)
+           Some((next + ('a' as u8)))
        })
-       .collect::<String>()
-       .chars()
-       .rev()
-       .collect()
+       .collect::<Vec<_>>();
+       v.reverse();
+       unsafe { String::from_utf8_unchecked(v) }
 }
 
 fn has_straight(input: &str) -> bool {
@@ -50,15 +49,20 @@ fn next_password(passwd: &str) -> String {
     return next;
 }
 
-#[test]
-fn test_strbmp() {
-    assert_eq!(strbump("xx"), "xy");
-    assert_eq!(strbump("xy"), "xz");
-    assert_eq!(strbump("xz"), "ya");
-    assert_eq!(strbump("ya"), "yb");
-    assert_eq!(has_straight("zabc"), true);
-    assert_eq!(has_straight("zcde"), true);
-    assert_eq!(has_straight("aabd"), false);
-    assert_eq!(next_password("abcdefgh"), "abcdffaa");
-    assert_eq!(next_password("ghijklmn"), "ghjaabcc");
+#[cfg(test)]
+mod test {
+    use super::{strbump, has_straight, next_password};
+
+    #[test]
+    fn test_strbmp() {
+        assert_eq!(strbump("xx"), "xy");
+        assert_eq!(strbump("xy"), "xz");
+        assert_eq!(strbump("xz"), "ya");
+        assert_eq!(strbump("ya"), "yb");
+        assert_eq!(has_straight("zabc"), true);
+        assert_eq!(has_straight("zcde"), true);
+        assert_eq!(has_straight("aabd"), false);
+        assert_eq!(next_password("abcdefgh"), "abcdffaa");
+        assert_eq!(next_password("ghijklmn"), "ghjaabcc");
+    }
 }
