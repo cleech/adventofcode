@@ -18,19 +18,26 @@ struct Reindeer {
 }
 
 impl Reindeer {
-    fn from_str(input: &str) -> Reindeer {
-        let (name, speed, stamina, rest) = scan_fmt!(input,
-                                                     "{} can fly {d} km/s for {d} seconds, but \
-                                                      then must rest for {d} seconds.",
-                                                     String,
-                                                     usize,
-                                                     usize,
-                                                     usize);
-        Reindeer {
-            name: name.unwrap(),
-            speed: speed.unwrap(),
-            stamina: stamina.unwrap(),
-            rest: rest.unwrap(),
+    fn from_str(input: &str) -> Option<Reindeer> {
+        if let (Some(name), Some(speed), Some(stamina), Some(rest)) = scan_fmt!(input,
+                                                                                "{} can fly {d} \
+                                                                                 km/s for {d} \
+                                                                                 seconds, but \
+                                                                                 then must rest \
+                                                                                 for {d} seconds\
+                                                                                 .",
+                                                                                String,
+                                                                                usize,
+                                                                                usize,
+                                                                                usize) {
+            Some(Reindeer {
+                name: name,
+                speed: speed,
+                stamina: stamina,
+                rest: rest,
+            })
+        } else {
+            None
         }
     }
 
@@ -53,15 +60,15 @@ impl Reindeer {
 
 fn race(input: &str, seconds: usize) -> usize {
     input.lines()
-         .map(|line| Reindeer::from_str(line))
+         .filter_map(|line| Reindeer::from_str(line))
          .map(|r| r.distance_at_time(seconds))
          .max()
-         .unwrap()
+         .unwrap_or(0)
 }
 
 fn race_2(input: &str, seconds: usize) -> usize {
     let reindeer = input.lines()
-                        .map(|line| Reindeer::from_str(line))
+                        .filter_map(|line| Reindeer::from_str(line))
                         .collect::<Vec<_>>();
     let mut scorecard: HashMap<&str, (usize, usize)> = HashMap::new();
     for r in reindeer.iter() {
@@ -85,17 +92,24 @@ fn race_2(input: &str, seconds: usize) -> usize {
             }
         }
     }
-    let winner = scorecard.iter()
-                          .max_by_key(|&(_, v)| v.0)
-                          .unwrap();
-    (winner.1).0
+    if let Some(winner) = scorecard.iter()
+                                   .max_by_key(|&(_, v)| v.0) {
+        (winner.1).0
+    } else {
+        0
+    }
 }
 
-#[test]
-fn test_day14() {
-    let input = ["Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.",
-                 "Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds."]
-                    .join("\n");
-    assert_eq!(race(&input, 1000), 1120);
-    assert_eq!(race_2(&input, 1000), 689);
+#[cfg(test)]
+mod test {
+    use super::{race, race_2};
+
+    #[test]
+    fn test_day14() {
+        let input = ["Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.",
+                     "Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds."]
+                        .join("\n");
+        assert_eq!(race(&input, 1000), 1120);
+        assert_eq!(race_2(&input, 1000), 689);
+    }
 }
