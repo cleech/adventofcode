@@ -14,26 +14,16 @@ pub fn main() -> Vec<String> {
          }]
 }
 
-struct PowerSet<'a, T, F>
-    where T: 'a + Copy,
-          F: Fn(&[T]) -> bool
+struct PowerSet<'a, T>
+    where T: 'a + Copy
 {
     stack: Vec<(Vec<T>, &'a [T])>,
-    stop: F,
+    stop: Box<Fn(&[T]) -> bool>,
 }
 
-impl<'a, T, F> PowerSet<'a, T, F>
-    where T: 'a + Copy,
-          F: Fn(&[T]) -> bool
+impl<'a, T> PowerSet<'a, T> where T: 'a + Copy
 {
-    // not sure why this doesn't compile
-    // expected type parameter, found fn item
-    //
-    //  fn new(data: &'a [T]) -> PowerSet<'a, T, F> {
-    //      PowerSet::with_prune_condition(data, |_| false)
-    //  }
-
-    fn with_prune_condition(data: &'a [T], stop: F) -> PowerSet<'a, T, F> {
+    fn new(data: &'a [T]) -> PowerSet<'a, T> {
         let mut stack = Vec::new();
         if let Some((selected, remaining)) = data.split_last() {
             stack.push((vec![*selected], remaining));
@@ -43,14 +33,18 @@ impl<'a, T, F> PowerSet<'a, T, F>
         }
         PowerSet {
             stack: stack,
-            stop: stop,
+            stop: box |_| false,
         }
+    }
+
+    fn with_prune_condition<F>(data: &'a [T], stop: F) -> PowerSet<'a, T>
+        where F: Fn(&[T]) -> bool + 'static
+    {
+        PowerSet { stop: box stop, ..PowerSet::new(data) }
     }
 }
 
-impl<'a, T, F> Iterator for PowerSet<'a, T, F>
-    where T: 'a + Copy,
-          F: Fn(&[T]) -> bool
+impl<'a, T> Iterator for PowerSet<'a, T> where T: 'a + Copy
 {
     type Item = Vec<T>;
 
