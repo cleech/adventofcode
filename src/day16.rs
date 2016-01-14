@@ -1,4 +1,5 @@
 use std::str;
+use std::str::FromStr;
 use std::collections::HashMap;
 use nom::{IResult, is_alphabetic, is_digit};
 
@@ -41,7 +42,7 @@ fn filter_2(sue: &Aunt, compound: &(String, u32)) -> bool {
 fn find_aunt<F>(f: &F) -> Vec<u32>
     where F: Fn(&Aunt, &(String, u32)) -> bool
 {
-    let mut aunt_sues = DATA.lines().map(|line| Aunt::from_str(line)).collect::<Vec<_>>();
+    let mut aunt_sues = DATA.lines().filter_map(|line| Aunt::from_str(line).ok()).collect::<Vec<_>>();
     for c in MFCSAM.iter().map(|l| compound(l.as_bytes())) {
         if let IResult::Done(_, compound) = c {
             aunt_sues = aunt_sues.into_iter()
@@ -91,12 +92,14 @@ named!(aunt_sue<&[u8], Aunt>,
     )
 );
 
-impl Aunt {
-    fn from_str(input: &str) -> Aunt {
+impl FromStr for Aunt {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Aunt, ()> {
         if let IResult::Done(_, sue) = aunt_sue(input.as_bytes()) {
-            sue
+            Ok(sue)
         } else {
-            panic!("invalid input")
+            Err(())
         }
     }
 }

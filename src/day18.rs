@@ -1,13 +1,14 @@
 use std::fmt;
 use std::mem;
+use std::str::FromStr;
 
 const DATA: &'static str = include_str!("../data/input_18.txt");
 
 pub fn main() -> Vec<String> {
-    let mut life = Life::from_str(DATA);
+    let mut life = Life::from_str(DATA).unwrap();
     let lcount = life.nth(100).unwrap().lcount();
 
-    let mut life = Life::from_str(DATA);
+    let mut life = Life::from_str(DATA).unwrap();
     life.stick(0, 0);
     life.stick(0, 99);
     life.stick(99, 0);
@@ -34,23 +35,6 @@ impl Life {
 
     fn stick(&mut self, x: usize, y: usize) {
         self.stuck.push((x, y));
-    }
-
-    fn from_str(data: &str) -> Life {
-        let mut life = Life::new();
-        {
-            for (l, c) in data.lines()
-                              .enumerate()
-                              .flat_map(move |(l, s)| {
-                                  s.chars()
-                                   .enumerate()
-                                   .filter(|&(_, z)| z == '#')
-                                   .map(move |(c, _)| (l, c))
-                              }) {
-                life.arr[l * life.size.0 + c] = true;
-            }
-        }
-        life
     }
 
     fn to_string(&self) -> String {
@@ -105,6 +89,27 @@ impl Life {
             .iter()
             .filter(|&&b| b == true)
             .count()
+    }
+}
+
+impl FromStr for Life {
+    type Err = ();
+
+    fn from_str(data: &str) -> Result<Life, ()> {
+        let mut life = Life::new();
+        {
+            for (l, c) in data.lines()
+                              .enumerate()
+                              .flat_map(move |(l, s)| {
+                                  s.chars()
+                                   .enumerate()
+                                   .filter(|&(_, z)| z == '#')
+                                   .map(move |(c, _)| (l, c))
+                              }) {
+                life.arr[l * life.size.0 + c] = true;
+            }
+        }
+        Ok(life)
     }
 }
 

@@ -1,6 +1,11 @@
 use std::cmp::max;
 use std::iter::Iterator;
 
+const DATA: &'static str = include_str!("../data/input_15.txt");
+
+fn parse_input(input: &str) {
+}
+
 // ingredient property data for part 1
 const INGREDIENTS: [[i32; 4]; 4] = [[3, 0, 0, -3], [-3, 3, 0, 0], [-1, 0, 4, 0], [0, 0, -2, 2]];
 // ingredient calorie data for part 2
@@ -52,6 +57,6 @@ pub fn main() -> Vec<String> {
                          })
                          .collect::<Vec<(i32, i32)>>();
 
-    vec![cookies.iter().map(|c| c.0).max().unwrap().to_string(),
-         cookies.iter().filter(|c| c.1 == 500).map(|c| c.0).max().unwrap().to_string()]
+    vec![cookies.iter().map(|c| c.0).max().unwrap_or(0).to_string(),
+         cookies.iter().filter(|c| c.1 == 500).map(|c| c.0).max().unwrap_or(0).to_string()]
 }

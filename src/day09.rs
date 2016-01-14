@@ -2,6 +2,7 @@ use std::cmp::{min, max};
 use std::hash::{Hash, Hasher};
 use std::collections::{HashSet, HashMap};
 use std::ops::Add;
+use std::str::FromStr;
 
 extern crate itertools;
 use self::itertools::Itertools;
@@ -49,7 +50,9 @@ struct Route {
     distance: usize,
 }
 
-impl Route {
+impl FromStr for Route {
+    type Err = &'static str;
+
     fn from_str(route: &str) -> Result<Route, &'static str> {
         if let (Some(src), Some(dst), Some(distance)) = scan_fmt!(route,
                                                                   "{} to {} = {d}",
@@ -118,6 +121,7 @@ impl RouteMap {
 
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
     use super::{Route, RouteMap};
 
     #[test]

@@ -1,4 +1,5 @@
 use std::collections::{HashSet, HashMap};
+use std::str::FromStr;
 
 extern crate permutohedron;
 
@@ -19,8 +20,10 @@ struct Rule {
     delta: i32,
 }
 
-impl Rule {
-    fn from_str(rule: &str) -> Option<Rule> {
+impl FromStr for Rule {
+    type Err = ();
+
+    fn from_str(rule: &str) -> Result<Rule, ()> {
         let pattern = "{} would {} {d} happiness units by sitting next to {}.";
         if let (Some(name), Some(gain_or_lose), Some(mut delta), Some(other)) = scan_fmt!(rule,
                                                                                           pattern,
@@ -31,15 +34,15 @@ impl Rule {
             match gain_or_lose.as_ref() {
                 "gain" => {}
                 "lose" => delta = -delta,
-                _ => return None,
+                _ => return Err(()),
             }
-            Some(Rule {
+            Ok(Rule {
                 target: name.clone(),
                 guests: (name, other),
                 delta: delta,
             })
         } else {
-            None
+            Err(())
         }
     }
 }
@@ -55,7 +58,7 @@ impl Table {
         let mut rules = HashMap::new();
 
         for line in input.lines() {
-            if let Some(r) = Rule::from_str(line) {
+            if let Ok(r) = Rule::from_str(line) {
                 guestlist.insert(r.target.clone());
                 rules.insert(r.guests, (r.target, r.delta));
             } else {

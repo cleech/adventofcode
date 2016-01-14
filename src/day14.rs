@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::iter::Iterator;
 use std::cmp;
+use std::str::FromStr;
 
 const DATA: &'static str = include_str!("../data/input_14.txt");
 
@@ -17,8 +18,10 @@ struct Reindeer {
     rest: usize,
 }
 
-impl Reindeer {
-    fn from_str(input: &str) -> Option<Reindeer> {
+impl FromStr for Reindeer {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Reindeer, ()> {
         if let (Some(name), Some(speed), Some(stamina), Some(rest)) = scan_fmt!(input,
                                                                                 "{} can fly {d} \
                                                                                  km/s for {d} \
@@ -30,17 +33,19 @@ impl Reindeer {
                                                                                 usize,
                                                                                 usize,
                                                                                 usize) {
-            Some(Reindeer {
+            Ok(Reindeer {
                 name: name,
                 speed: speed,
                 stamina: stamina,
                 rest: rest,
             })
         } else {
-            None
+            Err(())
         }
     }
+}
 
+impl Reindeer {
     fn speed_at_time(&self, second: usize) -> usize {
         // a reindeer flies in a cycle of full speed and rest
         // figure out where in the reindeers individual cycle it is
@@ -60,7 +65,7 @@ impl Reindeer {
 
 fn race(input: &str, seconds: usize) -> usize {
     input.lines()
-         .filter_map(|line| Reindeer::from_str(line))
+         .filter_map(|line| Reindeer::from_str(line).ok())
          .map(|r| r.distance_at_time(seconds))
          .max()
          .unwrap_or(0)
@@ -68,7 +73,7 @@ fn race(input: &str, seconds: usize) -> usize {
 
 fn race_2(input: &str, seconds: usize) -> usize {
     let reindeer = input.lines()
-                        .filter_map(|line| Reindeer::from_str(line))
+                        .filter_map(|line| Reindeer::from_str(line).ok())
                         .collect::<Vec<_>>();
     let mut scorecard: HashMap<&str, (usize, usize)> = HashMap::new();
     for r in &reindeer {
