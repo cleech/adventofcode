@@ -35,15 +35,21 @@ fn coord_to_index(row: u64, col: u64) -> u64 {
 
 // modular exponentiation by repeated squaring
 fn mod_exp(base: u64, exponent: u64, modulus: u64) -> u64 {
-    match exponent {
-        0 => 1,
-        1 => base % modulus,
-        e if e % 2 == 0 => {
-            let n = mod_exp(base, e >> 1, modulus);
-            n * n % modulus
+    // tail recursive version, with accumulating multiplier argument
+    fn mod_exp_inner(base: u64, exponent: u64, modulus: u64, mult: u64) -> u64 {
+        match exponent {
+            0 => mult,
+            1 => base * mult % modulus,
+            e if e % 2 == 0 => mod_exp_inner(base * base % modulus, e >> 1, modulus, mult),
+            e => {
+                mod_exp_inner(base * base % modulus,
+                              (e - 1) >> 1,
+                              modulus,
+                              base * mult % modulus)
+            }
         }
-        e => mod_exp(base, e - 1, modulus) * base % modulus,
     }
+    mod_exp_inner(base, exponent, modulus, 1)
 }
 
 // this was my original iterator approach, much slower but generates all of the intermediate values
