@@ -12,3 +12,7 @@ permutohedron = "~0.2.0"
 clap = "~1.5.4"
 serde_json = "~0.6.0"
 nom="~1.0.1"
+clippy = { version="*", optional = true }
+
+[features]
+default=[]

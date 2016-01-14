@@ -96,7 +96,7 @@ impl Program {
                       Some("jmp") => {
                           iter.next()
                               .and_then(|o| o.parse::<i32>().ok())
-                              .map(|o| Instr::Jmp(o))
+                              .map(Instr::Jmp)
                       }
                       Some("jie") => {
                           iter.next()
@@ -133,7 +133,7 @@ impl Program {
               })
               .collect::<Option<Vec<_>>>()
               .ok_or("bad program")
-              .map(|p| Program::new(p))
+              .map(Program::new)
     }
 
     fn run(&mut self) {

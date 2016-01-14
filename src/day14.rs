@@ -71,20 +71,20 @@ fn race_2(input: &str, seconds: usize) -> usize {
                         .filter_map(|line| Reindeer::from_str(line))
                         .collect::<Vec<_>>();
     let mut scorecard: HashMap<&str, (usize, usize)> = HashMap::new();
-    for r in reindeer.iter() {
+    for r in &reindeer {
         scorecard.insert(&r.name[..], (0usize, 0));
     }
 
     let mut furthest = 0;
     for t in 0..seconds {
-        for r in reindeer.iter() {
+        for r in &reindeer {
             if let Some(&mut (_, ref mut distance)) = scorecard.get_mut(&r.name[..]) {
                 // *distance = r.distance_at_time(t+1);
                 *distance += r.speed_at_time(t);
                 furthest = cmp::max(furthest, *distance);
             }
         }
-        for r in reindeer.iter() {
+        for r in &reindeer {
             if let Some(&mut (ref mut score, ref distance)) = scorecard.get_mut(&r.name[..]) {
                 if *distance == furthest {
                     *score += 1;

@@ -63,49 +63,49 @@ impl Gate {
         if let Some(m) = set.exec(input) {
             Gate::Source {
                 sig: m.group(1).parse::<u16>().unwrap(),
-                out: Wire(m.group(2).to_string()),
+                out: Wire(m.group(2).to_owned()),
             }
         } else if let Some(m) = pass.exec(input) {
             Gate::Pass {
-                src: Wire(m.group(1).to_string()),
-                out: Wire(m.group(2).to_string()),
+                src: Wire(m.group(1).to_owned()),
+                out: Wire(m.group(2).to_owned()),
             }
         } else if let Some(m) = not.exec(input) {
             Gate::Not {
-                src: Wire(m.group(1).to_string()),
-                out: Wire(m.group(2).to_string()),
+                src: Wire(m.group(1).to_owned()),
+                out: Wire(m.group(2).to_owned()),
             }
         } else if let Some(m) = and.exec(input) {
             if m.group_len(2) > 0 {
                 Gate::And {
                     a: Source::Pattern(m.group(2).parse::<u16>().unwrap()),
-                    b: Wire(m.group(4).to_string()),
-                    out: Wire(m.group(5).to_string()),
+                    b: Wire(m.group(4).to_owned()),
+                    out: Wire(m.group(5).to_owned()),
                 }
             } else {
                 Gate::And {
-                    a: Source::Wire(Wire(m.group(3).to_string())),
-                    b: Wire(m.group(4).to_string()),
-                    out: Wire(m.group(5).to_string()),
+                    a: Source::Wire(Wire(m.group(3).to_owned())),
+                    b: Wire(m.group(4).to_owned()),
+                    out: Wire(m.group(5).to_owned()),
                 }
             }
         } else if let Some(m) = or.exec(input) {
             Gate::Or {
-                a: Wire(m.group(1).to_string()),
-                b: Wire(m.group(2).to_string()),
-                out: Wire(m.group(3).to_string()),
+                a: Wire(m.group(1).to_owned()),
+                b: Wire(m.group(2).to_owned()),
+                out: Wire(m.group(3).to_owned()),
             }
         } else if let Some(m) = lshift.exec(input) {
             Gate::LShift {
-                src: Wire(m.group(1).to_string()),
+                src: Wire(m.group(1).to_owned()),
                 shift: m.group(2).parse::<u16>().unwrap(),
-                out: Wire(m.group(3).to_string()),
+                out: Wire(m.group(3).to_owned()),
             }
         } else if let Some(m) = rshift.exec(input) {
             Gate::RShift {
-                src: Wire(m.group(1).to_string()),
+                src: Wire(m.group(1).to_owned()),
                 shift: m.group(2).parse::<u16>().unwrap(),
-                out: Wire(m.group(3).to_string()),
+                out: Wire(m.group(3).to_owned()),
             }
         } else {
             panic!("invalid input: {}", input)
@@ -131,15 +131,15 @@ impl Gate {
             Gate::Pass{ ref src, .. } => c.eval(src),
             Gate::Not{ ref src, .. } => c.eval(src).map(|v| !v),
             Gate::And{ ref a, ref b, .. } => {
-                match a {
-                    &Source::Wire(ref w) => {
+                match *a {
+                    Source::Wire(ref w) => {
                         match (c.eval(w), c.eval(b)) {
                             (None, _) => None,
                             (_, None) => None,
                             (Some(lhs), Some(rhs)) => Some(lhs & rhs),
                         }
                     }
-                    &Source::Pattern(p) => {
+                    Source::Pattern(p) => {
                         match c.eval(b) {
                             None => None,
                             Some(rhs) => Some(p & rhs),
@@ -186,7 +186,7 @@ impl Circuit {
         } else {
             let v = self.gates.get(wire).cloned().and_then(|g| g.eval(self));
             self.cache.insert(wire.clone(), v.unwrap());
-            return v;
+            v
         }
     }
 
@@ -198,13 +198,13 @@ impl Circuit {
 
 fn run_circuit(input: &str, target: &str) -> u16 {
     let mut c = Circuit::from_str(input);
-    c.eval(&Wire(target.to_string())).unwrap()
+    c.eval(&Wire(target.to_owned())).unwrap()
 }
 
 fn part2(input: &str, target: &str, force: &str, v: u16) -> u16 {
     let mut c = Circuit::from_str(input);
     c.force(&Wire(force.to_owned()), v);
-    c.eval(&Wire(target.to_string())).unwrap()
+    c.eval(&Wire(target.to_owned())).unwrap()
 }
 
 #[cfg(test)]
@@ -223,14 +223,14 @@ mod test {
                   "NOT y -> i"]
                      .join("\n");
         let mut c = Circuit::from_str(&cs);
-        assert_eq!(c.eval(&Wire("d".to_string())), Some(72));
-        assert_eq!(c.eval(&Wire("e".to_string())), Some(507));
-        assert_eq!(c.eval(&Wire("f".to_string())), Some(492));
-        assert_eq!(c.eval(&Wire("g".to_string())), Some(114));
-        assert_eq!(c.eval(&Wire("h".to_string())), Some(65412));
-        assert_eq!(c.eval(&Wire("i".to_string())), Some(65079));
-        assert_eq!(c.eval(&Wire("x".to_string())), Some(123));
-        assert_eq!(c.eval(&Wire("y".to_string())), Some(456));
+        assert_eq!(c.eval(&Wire("d".to_owned())), Some(72));
+        assert_eq!(c.eval(&Wire("e".to_owned())), Some(507));
+        assert_eq!(c.eval(&Wire("f".to_owned())), Some(492));
+        assert_eq!(c.eval(&Wire("g".to_owned())), Some(114));
+        assert_eq!(c.eval(&Wire("h".to_owned())), Some(65412));
+        assert_eq!(c.eval(&Wire("i".to_owned())), Some(65079));
+        assert_eq!(c.eval(&Wire("x".to_owned())), Some(123));
+        assert_eq!(c.eval(&Wire("y".to_owned())), Some(456));
     }
 }
 

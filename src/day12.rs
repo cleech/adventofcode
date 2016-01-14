@@ -42,7 +42,7 @@ fn _part_2(data: &Value) -> i64 {
         Value::String(_) => 0,
         Value::Array(ref vec) => vec.iter().map(|v| _part_2(v)).sum(),
         Value::Object(ref bt) => {
-            if bt.iter().any(|(_, v)| v.as_string().map(|s| s == "red").unwrap_or(false)) {
+            if bt.iter().any(|(_, v)| v.as_string().map_or(false, |s| s == "red")) {
                 0
             } else {
                 bt.iter().map(|(_, v)| _part_2(v)).sum()

@@ -18,7 +18,7 @@ struct PowerSet<'a, T>
     where T: 'a + Copy
 {
     stack: Vec<(Vec<T>, &'a [T])>,
-    stop: Box<Fn(&[T]) -> bool>,
+    stop: Box<Fn(&[T]) -> bool + 'a>,
 }
 
 impl<'a, T> PowerSet<'a, T> where T: 'a + Copy
@@ -38,7 +38,7 @@ impl<'a, T> PowerSet<'a, T> where T: 'a + Copy
     }
 
     fn with_prune_condition<F>(data: &'a [T], stop: F) -> PowerSet<'a, T>
-        where F: Fn(&[T]) -> bool + 'static
+        where F: 'a + Fn(&[T]) -> bool
     {
         PowerSet { stop: box stop, ..PowerSet::new(data) }
     }

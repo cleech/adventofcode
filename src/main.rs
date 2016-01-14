@@ -5,6 +5,9 @@
 #![feature(time2)]
 #![cfg_attr(test, feature(test))]
 
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
+
 use std::io;
 use std::time;
 

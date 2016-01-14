@@ -46,7 +46,7 @@ fn next_password(passwd: &str) -> String {
     while !(has_straight(&next) && no_confusing_letters(&next) && has_two_pairs(&next)) {
         next = strbump(&next)
     }
-    return next;
+    next
 }
 
 #[cfg(test)]

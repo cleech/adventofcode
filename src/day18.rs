@@ -59,9 +59,10 @@ impl Life {
             .map(|l| {
                 l.iter()
                  .map(|v| {
-                     match *v {
-                         true => '#',
-                         false => '.',
+                     if *v {
+                         '#'
+                     } else {
+                         '.'
                      }
                  })
                  .collect::<String>()
@@ -137,7 +138,7 @@ impl Iterator for Life {
                 }
             }
         }
-        for &(x, y) in self.stuck.iter() {
+        for &(x, y) in &self.stuck {
             next[x * 100 + y] = true;
         }
 
