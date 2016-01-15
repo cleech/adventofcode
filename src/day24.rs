@@ -1,7 +1,7 @@
 const DATA: &'static str = include_str!("../data/input_24.txt");
 
 use std::cmp;
-use std::{u64, usize};
+use std::usize;
 use std::cell::Cell;
 
 pub fn main() -> Vec<String> {
@@ -24,23 +24,32 @@ pub fn main() -> Vec<String> {
 
 fn min_qe(data: &[u64], weight: u64) -> Option<u64> {
     let best_size: Cell<usize> = Cell::new(usize::MAX);
-    let best_qe: Cell<u64> = Cell::new(u64::MAX);
-    let stop = |ss: &[u64]| {
-        (ss.iter().sum::<u64>() > weight) ||
-        (ss.iter().product::<u64>() > best_qe.get()) ||
-        (ss.len() > best_size.get())
-    };
+    let stop = |ss: &[u64]| (ss.iter().sum::<u64>() > weight) || (ss.len() > best_size.get());
     let ps = PowerSet::with_prune_condition(&data, stop);
     let subsets = ps.filter(|ss| ss.iter().sum::<u64>() == weight)
-                    .inspect(|ss| {
-                        best_size.set(cmp::min(best_size.get(), ss.len()));
-                        best_qe.set(cmp::min(best_qe.get(), ss.iter().product()));
-                    })
+                    .inspect(|ss| best_size.set(cmp::min(best_size.get(), ss.len())))
                     .collect::<Vec<_>>();
     subsets.iter()
            .filter(|ss| ss.len() == best_size.get())
            .map(|ss| ss.iter().product::<u64>())
            .min()
+}
+
+#[cfg(test)]
+mod test {
+    use super::min_qe;
+
+    #[test]
+    fn example_1() {
+        let data = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        assert_eq!(min_qe(&data, data.iter().sum::<u64>() / 3), Some(99));
+    }
+
+    #[test]
+    fn example_2() {
+        let data = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        assert_eq!(min_qe(&data, data.iter().sum::<u64>() / 4), Some(44));
+    }
 }
 
 struct PowerSet<'a, T>
