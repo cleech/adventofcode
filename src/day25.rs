@@ -5,9 +5,7 @@ const MODULUS: u64 = 33554393;
 
 pub fn main() -> Vec<String> {
     if let Some((row, col)) = parse_input(DATA.trim()) {
-        let index = coord_to_index(row, col);
-        let code = SEED * mod_exp(BASE, index, MODULUS) % MODULUS;
-        vec![code.to_string()]
+        vec![code_lookup(row, col).to_string()]
     } else {
         vec![]
     }
@@ -27,6 +25,11 @@ fn parse_input(input: &str) -> Option<(u64, u64)> {
         }
         _ => None,
     }
+}
+
+fn code_lookup(row: u64, col: u64) -> u64 {
+    let index = coord_to_index(row, col);
+    SEED * mod_exp(BASE, index, MODULUS) % MODULUS
 }
 
 fn coord_to_index(row: u64, col: u64) -> u64 {
@@ -50,6 +53,21 @@ fn mod_exp(base: u64, exponent: u64, modulus: u64) -> u64 {
         }
     }
     mod_exp_inner(base, exponent, modulus, 1)
+}
+
+#[cfg(test)]
+mod test {
+    use super::{coord_to_index, code_lookup};
+
+    #[test]
+    fn examples() {
+        assert_eq!(coord_to_index(1, 1), 0);
+        assert_eq!(code_lookup(1, 1), 20151125);
+        assert_eq!(coord_to_index(2, 1), 1);
+        assert_eq!(code_lookup(2, 1), 31916031);
+        assert_eq!(coord_to_index(1, 2), 2);
+        assert_eq!(code_lookup(1, 2), 18749137);
+    }
 }
 
 // this was my original iterator approach, much slower but generates all of the intermediate values
