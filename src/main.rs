@@ -1,6 +1,7 @@
 #![feature(iter_arith)] // sum is not stable
 #![feature(box_syntax)]
 #![feature(associated_consts)]
+#![feature(slice_patterns)]
 #![feature(advanced_slice_patterns)]
 #![feature(time2)]
 #![cfg_attr(test, feature(test))]
