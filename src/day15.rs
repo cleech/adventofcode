@@ -3,33 +3,52 @@ use std::iter::Iterator;
 
 const DATA: &'static str = include_str!("../data/input_15.txt");
 
-fn parse_input(input: &str) {
+fn parse_ingredient(s: &str) -> Option<([i32; 4], i32)> {
+    if let (Some(capacity),
+            Some(durability),
+            Some(flavor),
+            Some(texture),
+            Some(calories)) = scan_fmt!(s,
+                                        "{*}: capacity {d}, durability {d}, flavor {d}, texture \
+                                         {d}, calories {d}",
+                                        i32,
+                                        i32,
+                                        i32,
+                                        i32,
+                                        i32) {
+        Some(([capacity, durability, flavor, texture], calories))
+    } else {
+        None
+    }
 }
 
-// ingredient property data for part 1
-const INGREDIENTS: [[i32; 4]; 4] = [[3, 0, 0, -3], [-3, 3, 0, 0], [-1, 0, 4, 0], [0, 0, -2, 2]];
-// ingredient calorie data for part 2
-const CALORIES: [i32; 4] = [2, 9, 1, 8];
+fn parse_input(input: &str) -> Option<(Vec<[i32; 4]>, Vec<i32>)> {
+    input.lines()
+         .map(parse_ingredient)
+         .collect::<Option<Vec<_>>>()
+         .map(|v| v.iter().cloned().unzip())
+}
 
 pub fn main() -> Vec<String> {
     let budget: i32 = 100;
+    if let Some((ingredients, calories)) = parse_input(DATA) {
 
-    // generate all possible recipes
-    let recipes = (0..budget + 1).flat_map(move |a| {
-        (0..budget + 1 - a).flat_map(move |b| {
-            (0..budget + 1 - a - b).map(move |c| {
-                let d = budget - a - b - c;
-                [a, b, c, d]
+        // generate all possible recipes
+        let recipes = (0..budget + 1).flat_map(move |a| {
+            (0..budget + 1 - a).flat_map(move |b| {
+                (0..budget + 1 - a - b).map(move |c| {
+                    let d = budget - a - b - c;
+                    [a, b, c, d]
+                })
             })
-        })
-    });
+        });
 
-    // score all the cookies
-    let cookies = recipes.map(|r| {
-                             // a recipe is a list of 4 amounts
-                             // for each amount pair with the ingredient data
-                             let scores =
-                                 Iterator::zip(r.iter(), INGREDIENTS.iter())
+        // score all the cookies
+        let cookies = recipes.map(|r| {
+                                 // a recipe is a list of 4 amounts
+                                 // for each amount pair with the ingredient data
+                                 let scores =
+                                 Iterator::zip(r.iter(), ingredients.iter())
                                      .map(|(i, w)| {
                                          // and multiply the ingredient properties by the amount
                                          [i * w[0], i * w[1], i * w[2], i * w[3]]
@@ -49,14 +68,21 @@ pub fn main() -> Vec<String> {
                                          acc * max(0, i)
                                      });
 
-                             // for calories, multiply amount by ingredient info and sum
-                             let calories = Iterator::zip(r.iter(), CALORIES.iter())
-                                                .map(|(i, c)| i * c)
-                                                .sum::<i32>();
-                             (scores, calories)
-                         })
-                         .collect::<Vec<(i32, i32)>>();
+                                 // for calories, multiply amount by ingredient info and sum
+                                 let calories = Iterator::zip(r.iter(), calories.iter())
+                                                    .map(|(i, c)| i * c)
+                                                    .sum::<i32>();
+                                 (scores, calories)
+                             })
+                             .collect::<Vec<(i32, i32)>>();
 
-    vec![cookies.iter().map(|c| c.0).max().unwrap_or(0).to_string(),
-         cookies.iter().filter(|c| c.1 == 500).map(|c| c.0).max().unwrap_or(0).to_string()]
+        vec![cookies.iter().map(|c| c.0).max().unwrap_or(0).to_string(),
+             cookies.iter().filter(|c| c.1 == 500).map(|c| c.0).max().unwrap_or(0).to_string()]
+    } else {
+        vec![]
+    }
+}
+
+#[cfg(test)]
+mod test {
 }
