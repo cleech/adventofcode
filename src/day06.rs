@@ -1,3 +1,5 @@
+use std::str;
+
 const DATA: &'static str = include_str!("../data/input_6.txt");
 
 pub fn main() -> Vec<String> {
@@ -16,47 +18,57 @@ fn doit<F, L>(f: F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize,
     }
 }
 
+struct Coord((usize, usize), (usize, usize));
+
+impl str::FromStr for Coord {
+    type Err = &'static str;
+
+    fn from_str(line: &str) -> Result<Coord, &'static str> {
+        if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&line,
+                                                                "{d},{d} through {d},{d}",
+                                                                usize,
+                                                                usize,
+                                                                usize,
+                                                                usize) {
+            Ok(Coord((a, b), (c, d)))
+        } else {
+            Err("error parsing coordinates")
+        }
+    }
+}
+
 enum Cmnd {
     On((usize, usize), (usize, usize)),
     Off((usize, usize), (usize, usize)),
     Toggle((usize, usize), (usize, usize)),
 }
 
-fn parse_coords(line: &str) -> Result<((usize, usize), (usize, usize)), &'static str> {
-    if let (Some(a), Some(b), Some(c), Some(d)) = scan_fmt!(&line,
-                                                            "{d},{d} through {d},{d}",
-                                                            usize,
-                                                            usize,
-                                                            usize,
-                                                            usize) {
-        Ok(((a, b), (c, d)))
-    } else {
-        Err("error parsing coordinates")
-    }
-}
+impl str::FromStr for Cmnd {
+    type Err = &'static str;
 
-fn parse_cmnd(line: &str) -> Result<Cmnd, &'static str> {
-    let mut words = line.split_whitespace();
+    fn from_str(line: &str) -> Result<Cmnd, &'static str> {
+        let mut words = line.split_whitespace();
 
-    match words.next() {
-        Some("turn") => {
-            match words.next() {
-                Some("on") => {
-                    let c = parse_coords(&words.collect::<String>());
-                    c.map(|c| Cmnd::On(c.0, c.1))
+        match words.next() {
+            Some("turn") => {
+                match words.next() {
+                    Some("on") => {
+                        let c = words.collect::<String>().parse::<Coord>();
+                        c.map(|c| Cmnd::On(c.0, c.1))
+                    }
+                    Some("off") => {
+                        let c = words.collect::<String>().parse::<Coord>();
+                        c.map(|c| Cmnd::Off(c.0, c.1))
+                    }
+                    _ => Err("error parsing command"),
                 }
-                Some("off") => {
-                    let c = parse_coords(&words.collect::<String>());
-                    c.map(|c| Cmnd::Off(c.0, c.1))
-                }
-                _ => Err("error parsing command"),
             }
+            Some("toggle") => {
+                let c = words.collect::<String>().parse::<Coord>();
+                c.map(|c| Cmnd::Toggle(c.0, c.1))
+            }
+            _ => Err("error parsing command"),
         }
-        Some("toggle") => {
-            let c = parse_coords(&words.collect::<String>());
-            c.map(|c| Cmnd::Toggle(c.0, c.1))
-        }
-        _ => Err("error parsing command"),
     }
 }
 
@@ -64,7 +76,7 @@ fn light_show(input: &str) -> usize {
     let mut state = box [[false; 1000]; 1000];
 
     for line in input.lines() {
-        if let Ok(cmnd) = parse_cmnd(line) {
+        if let Ok(cmnd) = line.parse() {
             match cmnd {
                 Cmnd::On(a, b) => doit(|light: &mut bool| *light = true, &mut state, a, b),
                 Cmnd::Off(a, b) => doit(|light: &mut bool| *light = false, &mut state, a, b),
@@ -82,7 +94,7 @@ fn bright_show(input: &str) -> u32 {
     let mut state = box [[0u32; 1000]; 1000];
 
     for line in input.lines() {
-        if let Ok(cmnd) = parse_cmnd(line) {
+        if let Ok(cmnd) = line.parse() {
             match cmnd {
                 Cmnd::On(a, b) => doit(|light: &mut u32| *light += 1, &mut state, a, b),
                 Cmnd::Off(a, b) => {
