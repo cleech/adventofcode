@@ -41,7 +41,7 @@ fn json_to_num_no_red(data: &Value) -> i64 {
                 bt.values().map(json_to_num_no_red).sum()
             }
         }
-        ref jv @ _ => json_to_num(jv),
+        ref jv => json_to_num(jv),
     }
 }
 

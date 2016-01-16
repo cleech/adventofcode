@@ -61,7 +61,7 @@ fn decode(input: &str) -> Result<String, &str> {
                     }
                 }
                 // non-escaped character
-                Some(c @ _) => Some(Ok(c)),
+                Some(c) => Some(Ok(c)),
                 // end of input
                 None => None,
             }
