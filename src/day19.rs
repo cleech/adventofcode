@@ -1,23 +1,27 @@
+use std::str::FromStr;
+
 extern crate itertools;
 use self::itertools::Itertools;
 
 const DATA: &'static str = include_str!("../data/input_19.txt");
 
 pub fn main() -> Vec<String> {
-    let ctx = Context::from_str(DATA);
+    let ctx = Context::from_str(DATA).unwrap();
     let s1 = ctx.all_replacements().count().to_string();
-    let s2 = ctx.find_production(ctx.medicine, 0).unwrap().to_string();
+    let s2 = ctx.find_production(&ctx.medicine, 0).unwrap().to_string();
     vec![s1, s2]
 }
 
 #[derive(Debug)]
 struct Context {
-    replacements: Vec<(&'static str, &'static str)>,
-    medicine: &'static str,
+    replacements: Vec<(String, String)>,
+    medicine: String,
 }
 
-impl<'a> Context {
-    fn from_str(data: &'static str) -> Context {
+impl FromStr for Context {
+    type Err = ();
+
+    fn from_str(data: &str) -> Result<Context, ()> {
         let mut input = data.lines();
         let mut replacements = Vec::new();
 
@@ -26,27 +30,29 @@ impl<'a> Context {
                 break;
             }
             let mut tokens = r.split(" => ");
-            replacements.push((tokens.next().unwrap(), tokens.next().unwrap()));
+            replacements.push((tokens.next().unwrap().to_owned(), tokens.next().unwrap().to_owned()));
         }
         let medicine = input.next().unwrap();
         assert_eq!(input.next(), None);
 
-        // for part 2, we want to work backwords trying longest first
+        // for part 2, we want to work backwards trying longest first
         // as we reduce the medicine molecule towards "e"
         // part 1 does not care about ordering of the replacement rules
-        replacements.sort_by(|&(_, a), &(_, b)| b.len().cmp(&a.len()));
+        replacements.sort_by(|&(_, ref a), &(_, ref b)| b.len().cmp(&a.len()));
 
-        Context {
+        Ok(Context {
             replacements: replacements,
-            medicine: medicine,
-        }
+            medicine: medicine.to_owned(),
+        })
     }
+}
 
+impl<'a> Context {
     fn all_replacements(&'a self) -> Box<Iterator<Item = String> + 'a> {
         box self.replacements
                 .iter()
-                .flat_map(move |&(from, to)| {
-                    self.medicine.single_replacements(from, to).into_iter()
+                .flat_map(move |&(ref from, ref to)| {
+                    (&self.medicine[..]).single_replacements(from, to).into_iter()
                 })
                 .unique()
     }
@@ -57,7 +63,7 @@ impl<'a> Context {
         }
         for next_step in self.replacements
                              .iter()
-                             .flat_map(|&(from, to)| {
+                             .flat_map(|&(ref from, ref to)| {
                                  input.single_replacements(to, from).into_iter()
                              })
                              .unique() {
