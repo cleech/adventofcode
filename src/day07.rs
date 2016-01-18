@@ -46,18 +46,19 @@ enum Gate {
     },
     LShift {
         src: Source,
-        shift: u16,
+        shift: Source,
         out: Source,
     },
     RShift {
         src: Source,
-        shift: u16,
+        shift: Source,
         out: Source,
     },
 }
 
 impl FromStr for Gate {
     type Err = &'static str;
+
     fn from_str(s: &str) -> Result<Gate, Self::Err> {
         match &s.split_whitespace().collect::<Vec<_>>()[..] { 
             [a, "->", o] => {
@@ -68,53 +69,43 @@ impl FromStr for Gate {
                 a.parse::<Source>()
                  .and_then(|a| o.parse::<Source>().map(|o| Gate::Not { src: a, out: o }))
             }
-            [a, "AND", b, "->", o] => {
+            [a, op @ "AND", b, "->", o] |
+            [a, op @ "OR", b, "->", o] |
+            [a, op @ "LSHIFT", b, "->", o] |
+            [a, op @ "RSHIFT", b, "->", o] => {
                 a.parse::<Source>().and_then(|a| {
                     b.parse::<Source>().and_then(|b| {
                         o.parse::<Source>().map(|o| {
-                            Gate::And {
-                                a: a,
-                                b: b,
-                                out: o,
-                            }
-                        })
-                    })
-                })
-            }
-            [a, "OR", b, "->", o] => {
-                a.parse::<Source>().and_then(|a| {
-                    b.parse::<Source>().and_then(|b| {
-                        o.parse::<Source>().map(|o| {
-                            Gate::Or {
-                                a: a,
-                                b: b,
-                                out: o,
-                            }
-                        })
-                    })
-                })
-            }
-            [a, "LSHIFT", n, "->", o] => {
-                a.parse::<Source>().and_then(|a| {
-                    n.parse::<u16>().map_err(|_| "parse error").and_then(|n| {
-                        o.parse::<Source>().map(|o| {
-                            Gate::LShift {
-                                src: a,
-                                shift: n,
-                                out: o,
-                            }
-                        })
-                    })
-                })
-            }
-            [a, "RSHIFT", n, "->", o] => {
-                a.parse::<Source>().and_then(|a| {
-                    n.parse::<u16>().map_err(|_| "parse error").and_then(|n| {
-                        o.parse::<Source>().map(|o| {
-                            Gate::RShift {
-                                src: a,
-                                shift: n,
-                                out: o,
+                            match op {
+                                "AND" => {
+                                    Gate::And {
+                                        a: a,
+                                        b: b,
+                                        out: o,
+                                    }
+                                }
+                                "OR" => {
+                                    Gate::Or {
+                                        a: a,
+                                        b: b,
+                                        out: o,
+                                    }
+                                }
+                                "LSHIFT" => {
+                                    Gate::LShift {
+                                        src: a,
+                                        shift: b,
+                                        out: o,
+                                    }
+                                }
+                                "RSHIFT" => {
+                                    Gate::RShift {
+                                        src: a,
+                                        shift: b,
+                                        out: o,
+                                    }
+                                }
+                                _ => unreachable!(),
                             }
                         })
                     })
@@ -156,8 +147,8 @@ impl Gate {
                     (Some(lhs), Some(rhs)) => Some(lhs | rhs),
                 }
             }
-            Gate::LShift{ ref src, shift, .. } => c.eval(src).map(|v| v << shift),
-            Gate::RShift{ ref src, shift, .. } => c.eval(src).map(|v| v >> shift),
+            Gate::LShift{ ref src, ref shift, .. } => c.eval(src).map(|v| v << c.eval(shift).unwrap()),
+            Gate::RShift{ ref src, ref shift, .. } => c.eval(src).map(|v| v >> c.eval(shift).unwrap()),
         }
     }
 }
