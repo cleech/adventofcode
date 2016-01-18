@@ -30,20 +30,25 @@ impl FromStr for Context {
                 break;
             }
             let mut tokens = r.split(" => ");
-            replacements.push((tokens.next().unwrap().to_owned(), tokens.next().unwrap().to_owned()));
+            if let Some((l, r)) = tokens.next().and_then(|l| tokens.next().map(|r| (l, r))) {
+                replacements.push((l.to_owned(), r.to_owned()))
+            } else {
+                return Err(());
+            }
         }
-        let medicine = input.next().unwrap();
-        assert_eq!(input.next(), None);
+        if let Some(medicine) = input.next() {
+            // for part 2, we want to work backwards trying longest first
+            // as we reduce the medicine molecule towards "e"
+            // part 1 does not care about ordering of the replacement rules
+            replacements.sort_by(|&(_, ref a), &(_, ref b)| b.len().cmp(&a.len()));
 
-        // for part 2, we want to work backwards trying longest first
-        // as we reduce the medicine molecule towards "e"
-        // part 1 does not care about ordering of the replacement rules
-        replacements.sort_by(|&(_, ref a), &(_, ref b)| b.len().cmp(&a.len()));
-
-        Ok(Context {
-            replacements: replacements,
-            medicine: medicine.to_owned(),
-        })
+            Ok(Context {
+                replacements: replacements,
+                medicine: medicine.to_owned(),
+            })
+        } else {
+            Err(())
+        }
     }
 }
 
