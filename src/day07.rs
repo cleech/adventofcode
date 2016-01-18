@@ -1,7 +1,5 @@
+use std::str::FromStr;
 use std::collections::HashMap;
-
-extern crate pcre;
-use self::pcre::Pcre;
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 struct Wire(pub String);
@@ -12,109 +10,147 @@ enum Source {
     Wire(Wire),
 }
 
+impl FromStr for Source {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Source, Self::Err> {
+        match s {
+            s if s.is_empty() => Err("empty identifier"),
+            s if (|s: &str| s.chars().all(|c| c.is_digit(10)))(s) => {
+                s.parse::<u16>().map_err(|_| "parse error").map(Source::Pattern)
+            }
+            s if (|s: &str| s.chars().all(|c| c.is_alphabetic()))(s) => {
+                return Ok(Source::Wire(Wire(s.to_owned())))
+            }
+            _ => Err("unknown identifier format"),
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum Gate {
-    Source {
-        sig: u16,
-        out: Wire,
-    },
     Pass {
-        src: Wire,
-        out: Wire,
+        src: Source,
+        out: Source,
     },
     Not {
-        src: Wire,
-        out: Wire,
+        src: Source,
+        out: Source,
     },
     And {
         a: Source,
-        b: Wire,
-        out: Wire,
+        b: Source,
+        out: Source,
     },
     Or {
-        a: Wire,
-        b: Wire,
-        out: Wire,
+        a: Source,
+        b: Source,
+        out: Source,
     },
     LShift {
-        src: Wire,
+        src: Source,
         shift: u16,
-        out: Wire,
+        out: Source,
     },
     RShift {
-        src: Wire,
+        src: Source,
         shift: u16,
-        out: Wire,
+        out: Source,
     },
 }
 
-impl Gate {
-    fn from_str(input: &str) -> Gate {
-        let mut set = Pcre::compile(r"^(\d+) -> ([a-z]+)$").unwrap();
-        let mut pass = Pcre::compile(r"^([a-z]+) -> ([a-z]+)$").unwrap();
-        let mut not = Pcre::compile(r"^NOT ([a-z]+) -> ([a-z]+)$").unwrap();
-        let mut and =
-            Pcre::compile(r"^((?<pat>\d+)|(?<wire>[a-z]+)) AND (?<rhs>[a-z]+) -> (?<out>[a-z]+)$")
-                .unwrap();
-        let mut or = Pcre::compile(r"^([a-z]+) OR ([a-z]+) -> ([a-z]+)$").unwrap();
-        let mut lshift = Pcre::compile(r"^([a-z]+) LSHIFT (\d+) -> ([a-z]+)$").unwrap();
-        let mut rshift = Pcre::compile(r"^([a-z]+) RSHIFT (\d+) -> ([a-z]+)$").unwrap();
-
-        if let Some(m) = set.exec(input) {
-            Gate::Source {
-                sig: m.group(1).parse::<u16>().unwrap(),
-                out: Wire(m.group(2).to_owned()),
+impl FromStr for Gate {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Gate, Self::Err> {
+        match &s.split_whitespace().collect::<Vec<_>>()[..] { 
+            [a, "->", o] => {
+                a.parse::<Source>()
+                 .and_then(|a| {
+                     o.parse::<Source>()
+                      .map(|o| Gate::Pass { src: a, out: o })
+                 })
             }
-        } else if let Some(m) = pass.exec(input) {
-            Gate::Pass {
-                src: Wire(m.group(1).to_owned()),
-                out: Wire(m.group(2).to_owned()),
+            ["NOT", a, "->", o] => {
+                a.parse::<Source>()
+                 .and_then(|a| {
+                     o.parse::<Source>()
+                      .map(|o| Gate::Not { src: a, out: o })
+                 })
             }
-        } else if let Some(m) = not.exec(input) {
-            Gate::Not {
-                src: Wire(m.group(1).to_owned()),
-                out: Wire(m.group(2).to_owned()),
+            [a, "AND", b, "->", o] => {
+                a.parse::<Source>()
+                 .and_then(|a| {
+                     b.parse::<Source>()
+                      .and_then(|b| {
+                          o.parse::<Source>()
+                           .map(|o| {
+                               Gate::And {
+                                   a: a,
+                                   b: b,
+                                   out: o,
+                               }
+                           })
+                      })
+                 })
             }
-        } else if let Some(m) = and.exec(input) {
-            if m.group_len(2) > 0 {
-                Gate::And {
-                    a: Source::Pattern(m.group(2).parse::<u16>().unwrap()),
-                    b: Wire(m.group(4).to_owned()),
-                    out: Wire(m.group(5).to_owned()),
-                }
-            } else {
-                Gate::And {
-                    a: Source::Wire(Wire(m.group(3).to_owned())),
-                    b: Wire(m.group(4).to_owned()),
-                    out: Wire(m.group(5).to_owned()),
-                }
+            [a, "OR", b, "->", o] => {
+                a.parse::<Source>()
+                 .and_then(|a| {
+                     b.parse::<Source>()
+                      .and_then(|b| {
+                          o.parse::<Source>()
+                           .map(|o| {
+                               Gate::Or {
+                                   a: a,
+                                   b: b,
+                                   out: o,
+                               }
+                           })
+                      })
+                 })
             }
-        } else if let Some(m) = or.exec(input) {
-            Gate::Or {
-                a: Wire(m.group(1).to_owned()),
-                b: Wire(m.group(2).to_owned()),
-                out: Wire(m.group(3).to_owned()),
+            [a, "LSHIFT", n, "->", o] => {
+                a.parse::<Source>()
+                 .and_then(|a| {
+                     n.parse::<u16>()
+                      .map_err(|_| "parse error")
+                      .and_then(|n| {
+                          o.parse::<Source>()
+                           .map(|o| {
+                               Gate::LShift {
+                                   src: a,
+                                   shift: n,
+                                   out: o,
+                               }
+                           })
+                      })
+                 })
             }
-        } else if let Some(m) = lshift.exec(input) {
-            Gate::LShift {
-                src: Wire(m.group(1).to_owned()),
-                shift: m.group(2).parse::<u16>().unwrap(),
-                out: Wire(m.group(3).to_owned()),
+            [a, "RSHIFT", n, "->", o] => {
+                a.parse::<Source>()
+                 .and_then(|a| {
+                     n.parse::<u16>()
+                      .map_err(|_| "parse error")
+                      .and_then(|n| {
+                          o.parse::<Source>()
+                           .map(|o| {
+                               Gate::RShift {
+                                   src: a,
+                                   shift: n,
+                                   out: o,
+                               }
+                           })
+                      })
+                 })
             }
-        } else if let Some(m) = rshift.exec(input) {
-            Gate::RShift {
-                src: Wire(m.group(1).to_owned()),
-                shift: m.group(2).parse::<u16>().unwrap(),
-                out: Wire(m.group(3).to_owned()),
-            }
-        } else {
-            panic!("invalid input: {}", input)
+            _ => Err("bad input"),
         }
     }
+}
 
-    fn out(&self) -> Wire {
+impl Gate {
+    fn out(&self) -> Source {
         match *self {
-            Gate::Source{ ref out, ..} => out,
             Gate::Pass{ ref out, ..} => out,
             Gate::Not{ ref out, ..} => out,
             Gate::And{ ref out, ..} => out,
@@ -127,24 +163,13 @@ impl Gate {
 
     fn eval(&self, c: &mut Circuit) -> Option<u16> {
         match *self {
-            Gate::Source{ sig, .. } => Some(sig),
             Gate::Pass{ ref src, .. } => c.eval(src),
             Gate::Not{ ref src, .. } => c.eval(src).map(|v| !v),
             Gate::And{ ref a, ref b, .. } => {
-                match *a {
-                    Source::Wire(ref w) => {
-                        match (c.eval(w), c.eval(b)) {
-                            (None, _) => None,
-                            (_, None) => None,
-                            (Some(lhs), Some(rhs)) => Some(lhs & rhs),
-                        }
-                    }
-                    Source::Pattern(p) => {
-                        match c.eval(b) {
-                            None => None,
-                            Some(rhs) => Some(p & rhs),
-                        }
-                    }
+                match (c.eval(a), c.eval(b)) {
+                    (None, _) => None,
+                    (_, None) => None,
+                    (Some(lhs), Some(rhs)) => Some(lhs & rhs),
                 }
             }
             Gate::Or{ ref a, ref b, .. } => {
@@ -161,8 +186,8 @@ impl Gate {
 }
 
 struct Circuit {
-    gates: HashMap<Wire, Gate>,
-    cache: HashMap<Wire, u16>,
+    gates: HashMap<Source, Gate>,
+    cache: HashMap<Source, u16>,
 }
 
 impl Circuit {
@@ -171,7 +196,7 @@ impl Circuit {
         let cache = HashMap::new();
 
         for line in input.lines() {
-            let gate = Gate::from_str(line);
+            let gate = Gate::from_str(line).unwrap();
             circuit.insert(gate.out(), gate);
         }
         Circuit {
@@ -180,36 +205,41 @@ impl Circuit {
         }
     }
 
-    fn eval(&mut self, wire: &Wire) -> Option<u16> {
-        if self.cache.contains_key(wire) {
-            self.cache.get(wire).cloned()
-        } else {
-            let v = self.gates.get(wire).cloned().and_then(|g| g.eval(self));
-            self.cache.insert(wire.clone(), v.unwrap());
-            v
+    fn eval(&mut self, wire: &Source) -> Option<u16> {
+        match *wire {
+            Source::Pattern(p) => Some(p),
+            ref s @ Source::Wire(_) => {
+                if self.cache.contains_key(s) {
+                    self.cache.get(s).cloned()
+                } else {
+                    let v = self.gates.get(s).cloned().and_then(|g| g.eval(self));
+                    self.cache.insert(s.clone(), v.unwrap());
+                    v
+                }
+            }
         }
     }
 
-    fn force(&mut self, wire: &Wire, v: u16) {
+    fn force(&mut self, s: &Source, v: u16) {
         self.cache.clear();
-        self.cache.insert(wire.clone(), v);
+        self.cache.insert(s.clone(), v);
     }
 }
 
 fn run_circuit(input: &str, target: &str) -> u16 {
     let mut c = Circuit::from_str(input);
-    c.eval(&Wire(target.to_owned())).unwrap()
+    c.eval(&Source::Wire(Wire(target.to_owned()))).unwrap()
 }
 
 fn part2(input: &str, target: &str, force: &str, v: u16) -> u16 {
     let mut c = Circuit::from_str(input);
-    c.force(&Wire(force.to_owned()), v);
-    c.eval(&Wire(target.to_owned())).unwrap()
+    c.force(&Source::Wire(Wire(force.to_owned())), v);
+    c.eval(&Source::Wire(Wire(target.to_owned()))).unwrap()
 }
 
 #[cfg(test)]
 mod test {
-    use super::{Circuit,Wire};
+    use super::{Circuit, Source, Wire};
 
     #[test]
     fn test_circuit() {
@@ -223,14 +253,14 @@ mod test {
                   "NOT y -> i"]
                      .join("\n");
         let mut c = Circuit::from_str(&cs);
-        assert_eq!(c.eval(&Wire("d".to_owned())), Some(72));
-        assert_eq!(c.eval(&Wire("e".to_owned())), Some(507));
-        assert_eq!(c.eval(&Wire("f".to_owned())), Some(492));
-        assert_eq!(c.eval(&Wire("g".to_owned())), Some(114));
-        assert_eq!(c.eval(&Wire("h".to_owned())), Some(65412));
-        assert_eq!(c.eval(&Wire("i".to_owned())), Some(65079));
-        assert_eq!(c.eval(&Wire("x".to_owned())), Some(123));
-        assert_eq!(c.eval(&Wire("y".to_owned())), Some(456));
+        assert_eq!(c.eval(&Source::Wire(Wire("d".to_owned()))), Some(72));
+        assert_eq!(c.eval(&Source::Wire(Wire("e".to_owned()))), Some(507));
+        assert_eq!(c.eval(&Source::Wire(Wire("f".to_owned()))), Some(492));
+        assert_eq!(c.eval(&Source::Wire(Wire("g".to_owned()))), Some(114));
+        assert_eq!(c.eval(&Source::Wire(Wire("h".to_owned()))), Some(65412));
+        assert_eq!(c.eval(&Source::Wire(Wire("i".to_owned()))), Some(65079));
+        assert_eq!(c.eval(&Source::Wire(Wire("x".to_owned()))), Some(123));
+        assert_eq!(c.eval(&Source::Wire(Wire("y".to_owned()))), Some(456));
     }
 }
 
