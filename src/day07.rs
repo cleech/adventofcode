@@ -49,52 +49,44 @@ impl FromStr for Gate {
             x
         };
 
+        fn unary_from_str(a: &str, o: &str, f: fn(u16) -> u16) -> Result<Gate, &'static str> {
+            a.parse::<Source>().and_then(|a| {
+                o.parse::<Source>().map(|o| {
+                    Gate::UnaryOp {
+                        src: a,
+                        out: o,
+                        f: f,
+                    }
+                })
+            })
+        }
+
+        fn binary_from_str(a: &str,
+                           b: &str,
+                           o: &str,
+                           f: fn(u16, u16) -> u16)
+                           -> Result<Gate, &'static str> {
+            a.parse::<Source>().and_then(|a| {
+                b.parse::<Source>().and_then(|b| {
+                    o.parse::<Source>().map(|o| {
+                        Gate::BinaryOp {
+                            a: a,
+                            b: b,
+                            out: o,
+                            f: f,
+                        }
+                    })
+                })
+            })
+        }
+
         match &s.split_whitespace().collect::<Vec<_>>()[..] { 
-            [a, "->", o] => {
-                a.parse::<Source>().and_then(|a| {
-                    o.parse::<Source>().map(|o| {
-                        Gate::UnaryOp {
-                            src: a,
-                            out: o,
-                            f: id,
-                        }
-                    })
-                })
-            }
-            ["NOT", a, "->", o] => {
-                a.parse::<Source>().and_then(|a| {
-                    o.parse::<Source>().map(|o| {
-                        Gate::UnaryOp {
-                            src: a,
-                            out: o,
-                            f: Not::not,
-                        }
-                    })
-                })
-            }
-            [a, op, b, "->", o] => {
-                a.parse::<Source>().and_then(|a| {
-                    b.parse::<Source>().and_then(|b| {
-                        o.parse::<Source>().and_then(|o| {
-                            let f: Result<(fn(u16, u16) -> u16), _> = match op {
-                                "AND" => Ok(BitAnd::bitand),
-                                "OR" => Ok(BitOr::bitor),
-                                "LSHIFT" => Ok(Shl::shl),
-                                "RSHIFT" => Ok(Shr::shr),
-                                _ => Err("unknown operation"),
-                            };
-                            f.map(|f| {
-                                Gate::BinaryOp {
-                                    a: a,
-                                    b: b,
-                                    out: o,
-                                    f: f,
-                                }
-                            })
-                        })
-                    })
-                })
-            }
+            [a, "->", o] => unary_from_str(a, o, id),
+            ["NOT", a, "->", o] => unary_from_str(a, o, Not::not),
+            [a, "AND", b, "->", o] => binary_from_str(a, b, o, BitAnd::bitand),
+            [a, "OR", b, "->", o] => binary_from_str(a, b, o, BitOr::bitor),
+            [a, "LSHIFT", b, "->", o] => binary_from_str(a, b, o, Shl::shl),
+            [a, "RSHIFT", b, "->", o] => binary_from_str(a, b, o, Shr::shr),
             _ => Err("bad input"),
         }
     }
@@ -113,10 +105,7 @@ impl Gate {
         match *self {
             Gate::UnaryOp{ ref src, ref f, .. } => c.eval(src).map(f),
             Gate::BinaryOp{ ref a, ref b, ref f, .. } => {
-                match (c.eval(a), c.eval(b)) {
-                    (Some(lhs), Some(rhs)) => Some(f(lhs, rhs)),
-                    _ => None,
-                }
+                c.eval(a).and_then(|a| c.eval(b).map(|b| f(a, b)))
             }
         }
     }
