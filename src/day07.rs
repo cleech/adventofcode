@@ -51,45 +51,46 @@ impl FromStr for Gate {
 
         match &s.split_whitespace().collect::<Vec<_>>()[..] { 
             [a, "->", o] => {
-                a.parse::<Source>()
-                 .and_then(|a| {
-                     o.parse::<Source>().map(|o| {
-                         Gate::UnaryOp {
-                             src: a,
-                             out: o,
-                             f: id,
-                         }
-                     })
-                 })
+                a.parse::<Source>().and_then(|a| {
+                    o.parse::<Source>().map(|o| {
+                        Gate::UnaryOp {
+                            src: a,
+                            out: o,
+                            f: id,
+                        }
+                    })
+                })
             }
             ["NOT", a, "->", o] => {
-                a.parse::<Source>()
-                 .and_then(|a| {
-                     o.parse::<Source>().map(|o| {
-                         Gate::UnaryOp {
-                             src: a,
-                             out: o,
-                             f: Not::not,
-                         }
-                     })
-                 })
+                a.parse::<Source>().and_then(|a| {
+                    o.parse::<Source>().map(|o| {
+                        Gate::UnaryOp {
+                            src: a,
+                            out: o,
+                            f: Not::not,
+                        }
+                    })
+                })
             }
             [a, op, b, "->", o] => {
                 a.parse::<Source>().and_then(|a| {
                     b.parse::<Source>().and_then(|b| {
-                        o.parse::<Source>().map(|o| {
-                            Gate::BinaryOp {
-                                a: a,
-                                b: b,
-                                out: o,
-                                f: match op {
-                                    "AND" => BitAnd::bitand,
-                                    "OR" => BitOr::bitor,
-                                    "LSHIFT" => Shl::shl,
-                                    "RSHIFT" => Shr::shr,
-                                    _ => unreachable!(),
-                                },
-                            }
+                        o.parse::<Source>().and_then(|o| {
+                            let f: Result<(fn(u16, u16) -> u16), _> = match op {
+                                "AND" => Ok(BitAnd::bitand),
+                                "OR" => Ok(BitOr::bitor),
+                                "LSHIFT" => Ok(Shl::shl),
+                                "RSHIFT" => Ok(Shr::shr),
+                                _ => Err("unknown operation"),
+                            };
+                            f.map(|f| {
+                                Gate::BinaryOp {
+                                    a: a,
+                                    b: b,
+                                    out: o,
+                                    f: f,
+                                }
+                            })
                         })
                     })
                 })
@@ -110,7 +111,7 @@ impl Gate {
 
     fn eval(&self, c: &mut Circuit) -> Option<u16> {
         match *self {
-            Gate::UnaryOp{ ref src, ref f, .. } => c.eval(src).map(|v| f(v)),
+            Gate::UnaryOp{ ref src, ref f, .. } => c.eval(src).map(f),
             Gate::BinaryOp{ ref a, ref b, ref f, .. } => {
                 match (c.eval(a), c.eval(b)) {
                     (Some(lhs), Some(rhs)) => Some(f(lhs, rhs)),
@@ -189,6 +190,14 @@ fn part2(input: &str, target: &str, force: &str, v: u16) -> Option<u16> {
     }
 }
 
+const DATA: &'static str = include_str!("../data/input_7.txt");
+
+pub fn main() -> Vec<String> {
+    let s1 = run_circuit(DATA, "a").unwrap();
+    let s2 = part2(DATA, "a", "b", 956).unwrap();
+    vec![s1.to_string(), s2.to_string()]
+}
+
 #[cfg(test)]
 mod test {
     use std::str::FromStr;
@@ -215,12 +224,4 @@ mod test {
         assert_eq!(c.eval(&Source::Wire("x".to_owned())), Some(123));
         assert_eq!(c.eval(&Source::Wire("y".to_owned())), Some(456));
     }
-}
-
-const DATA: &'static str = include_str!("../data/input_7.txt");
-
-pub fn main() -> Vec<String> {
-    let s1 = run_circuit(DATA, "a").unwrap();
-    let s2 = part2(DATA, "a", "b", 956).unwrap();
-    vec![s1.to_string(), s2.to_string()]
 }
