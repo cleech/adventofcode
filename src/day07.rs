@@ -1,5 +1,6 @@
 use std::str::FromStr;
 use std::collections::HashMap;
+use std::ops::{BitAnd, BitOr, Shl, Shr, Not};
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum Source {
@@ -26,33 +27,16 @@ impl FromStr for Source {
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum Gate {
-    Pass {
+    UnaryOp {
         src: Source,
         out: Source,
+        f: fn(u16) -> u16,
     },
-    Not {
-        src: Source,
-        out: Source,
-    },
-    And {
+    BinaryOp {
         a: Source,
         b: Source,
         out: Source,
-    },
-    Or {
-        a: Source,
-        b: Source,
-        out: Source,
-    },
-    LShift {
-        src: Source,
-        shift: Source,
-        out: Source,
-    },
-    RShift {
-        src: Source,
-        shift: Source,
-        out: Source,
+        f: fn(u16, u16) -> u16,
     },
 }
 
@@ -60,52 +44,51 @@ impl FromStr for Gate {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Gate, Self::Err> {
+
+        fn id<T>(x: T) -> T {
+            x
+        };
+
         match &s.split_whitespace().collect::<Vec<_>>()[..] { 
             [a, "->", o] => {
                 a.parse::<Source>()
-                 .and_then(|a| o.parse::<Source>().map(|o| Gate::Pass { src: a, out: o }))
+                 .and_then(|a| {
+                     o.parse::<Source>().map(|o| {
+                         Gate::UnaryOp {
+                             src: a,
+                             out: o,
+                             f: id,
+                         }
+                     })
+                 })
             }
             ["NOT", a, "->", o] => {
                 a.parse::<Source>()
-                 .and_then(|a| o.parse::<Source>().map(|o| Gate::Not { src: a, out: o }))
+                 .and_then(|a| {
+                     o.parse::<Source>().map(|o| {
+                         Gate::UnaryOp {
+                             src: a,
+                             out: o,
+                             f: Not::not,
+                         }
+                     })
+                 })
             }
-            [a, op @ "AND", b, "->", o] |
-            [a, op @ "OR", b, "->", o] |
-            [a, op @ "LSHIFT", b, "->", o] |
-            [a, op @ "RSHIFT", b, "->", o] => {
+            [a, op, b, "->", o] => {
                 a.parse::<Source>().and_then(|a| {
                     b.parse::<Source>().and_then(|b| {
                         o.parse::<Source>().map(|o| {
-                            match op {
-                                "AND" => {
-                                    Gate::And {
-                                        a: a,
-                                        b: b,
-                                        out: o,
-                                    }
-                                }
-                                "OR" => {
-                                    Gate::Or {
-                                        a: a,
-                                        b: b,
-                                        out: o,
-                                    }
-                                }
-                                "LSHIFT" => {
-                                    Gate::LShift {
-                                        src: a,
-                                        shift: b,
-                                        out: o,
-                                    }
-                                }
-                                "RSHIFT" => {
-                                    Gate::RShift {
-                                        src: a,
-                                        shift: b,
-                                        out: o,
-                                    }
-                                }
-                                _ => unreachable!(),
+                            Gate::BinaryOp {
+                                a: a,
+                                b: b,
+                                out: o,
+                                f: match op {
+                                    "AND" => BitAnd::bitand,
+                                    "OR" => BitOr::bitor,
+                                    "LSHIFT" => Shl::shl,
+                                    "RSHIFT" => Shr::shr,
+                                    _ => unreachable!(),
+                                },
                             }
                         })
                     })
@@ -119,36 +102,21 @@ impl FromStr for Gate {
 impl Gate {
     fn out(&self) -> Source {
         match *self {
-            Gate::Pass{ ref out, ..} => out,
-            Gate::Not{ ref out, ..} => out,
-            Gate::And{ ref out, ..} => out,
-            Gate::Or{ ref out, ..} => out,
-            Gate::LShift{ ref out, ..} => out,
-            Gate::RShift{ ref out, ..} => out,
+            Gate::UnaryOp{ ref out, ..} => out,
+            Gate::BinaryOp{ ref out, ..} => out,
         }
         .clone()
     }
 
     fn eval(&self, c: &mut Circuit) -> Option<u16> {
         match *self {
-            Gate::Pass{ ref src, .. } => c.eval(src),
-            Gate::Not{ ref src, .. } => c.eval(src).map(|v| !v),
-            Gate::And{ ref a, ref b, .. } => {
+            Gate::UnaryOp{ ref src, ref f, .. } => c.eval(src).map(|v| f(v)),
+            Gate::BinaryOp{ ref a, ref b, ref f, .. } => {
                 match (c.eval(a), c.eval(b)) {
-                    (None, _) => None,
-                    (_, None) => None,
-                    (Some(lhs), Some(rhs)) => Some(lhs & rhs),
+                    (Some(lhs), Some(rhs)) => Some(f(lhs, rhs)),
+                    _ => None,
                 }
             }
-            Gate::Or{ ref a, ref b, .. } => {
-                match (c.eval(a), c.eval(b)) {
-                    (None, _) => None,
-                    (_, None) => None,
-                    (Some(lhs), Some(rhs)) => Some(lhs | rhs),
-                }
-            }
-            Gate::LShift{ ref src, ref shift, .. } => c.eval(src).map(|v| v << c.eval(shift).unwrap()),
-            Gate::RShift{ ref src, ref shift, .. } => c.eval(src).map(|v| v >> c.eval(shift).unwrap()),
         }
     }
 }
