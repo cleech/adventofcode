@@ -1,8 +1,3 @@
-The use of nested `flat_map` ending with a `map` is a straightforward way to
-convert nested loops (populating an array/container) into an iterator.
-
----
-
 ### --- Day 15: Science for Hungry People ---
 
 Today, you set out on the task of perfecting your milk-dunking cookie recipe.

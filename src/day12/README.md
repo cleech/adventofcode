@@ -4,8 +4,9 @@ there then we need for this. I just used it to convert to the
 `serde_json::Value` enum type.
 
 Part 1 then just needs a recursive summing function that walks through
-`Value::Array` and `Value::Object` varients. And Part 2 adds a filter step on
-`Value::Object`.
+`Value::Array` and `Value::Object` varients. 
+
+Part 2 adds a filter step on `Value::Object`.
 
 ---
 

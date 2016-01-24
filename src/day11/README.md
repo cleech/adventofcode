@@ -1,4 +1,4 @@
-The filtering in this problem is similar to [day 5](../src/day05). The string
+The filtering in this problem is similar to [day 5](../day05). The string
 manipulation itself is easy enough if your comfortable converting between
 characters and integer types.
 

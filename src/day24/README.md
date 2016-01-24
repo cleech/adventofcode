@@ -1,3 +1,17 @@
+This is another search of all subsets, and it reuses the `PowerSet` generator
+from [day 17](../day17).
+
+We're looking for a best (minimum) solution this time, so we can be a bit more
+aggressive about dynamically improving the search bounds. I happy with how easy
+that turned out to be, by keeping a current best solution in a `Cell` it can be
+updated as solutions are generated using `inspect`.
+
+Doing that over a tuple of the `len` and `product` keeps the selection criteria
+properly ordered (leg-room then quantum entanglement), and comparisons of
+tuples do the right thing :)
+
+---
+
 ### --- Day 24: It Hangs in the Balance ---
 
 It's Christmas Eve, and Santa is loading up the sleigh for this year's

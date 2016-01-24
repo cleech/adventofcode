@@ -1,3 +1,14 @@
+I'm pretty happy with the `PowerSet` generator I put together here to check all
+of the subsets. It uses a branching algorithm keeping a stack of partial
+solutions to go back to. There's also a stop condition that let's the dead ends
+be cut out of the search space. Here it's a simple check of the sum against the
+target capacity, once it's exceeded adding more containers is never going to
+help.
+
+I was able to use it again in [day 24](../day24)
+
+---
+
 ### --- Day 17: No Such Thing as Too Much ---
 
 The elves bought too much eggnog again - `150` liters this time. To fit it all

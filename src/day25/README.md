@@ -1,3 +1,10 @@
+I first just wrote an iterator to loop through codes until we reached the
+answer. It worked, but the code generation function is just a seed value
+multiplied by a modular exponentiation of a fixed prime.  The exponentiation
+can be speed up with a repeated squares algorithm.
+
+---
+
 ### --- Day 25: Let It Snow ---
 
 Merry Christmas! Santa is booting up his weather machine; looks like you might
