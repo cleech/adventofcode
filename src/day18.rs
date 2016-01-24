@@ -5,10 +5,10 @@ use std::str::FromStr;
 const DATA: &'static str = include_str!("../data/input_18.txt");
 
 pub fn main() -> Vec<String> {
-    let mut life = Life::from_str(DATA).unwrap();
+    let mut life = DATA.parse::<Life>().unwrap();
     let lcount = life.nth(100).unwrap().lcount();
 
-    let mut life = Life::from_str(DATA).unwrap();
+    let mut life = DATA.parse::<Life>().unwrap();
     life.stick(0, 0);
     life.stick(0, 99);
     life.stick(99, 0);
@@ -20,20 +20,29 @@ pub fn main() -> Vec<String> {
 
 struct Life {
     size: (usize, usize),
-    arr: [bool; 100 * 100],
+    arr: Box<[bool]>,
     stuck: Vec<(usize, usize)>,
 }
 
 impl Life {
-    fn new() -> Life {
+    fn new(x: usize, y: usize) -> Life {
         Life {
-            size: (100, 100),
-            arr: [false; 100 * 100],
+            size: (x, y),
+            arr: vec![false; x * y].into_boxed_slice(),
             stuck: Vec::new(),
         }
     }
 
+    fn get(&self, x: usize, y: usize) -> Option<bool> {
+        if (x < self.size.0) && (y < self.size.1) {
+            self.arr.get(x * self.size.0 + y).map(&bool::to_owned)
+        } else {
+            None
+        }
+    }
+
     fn stick(&mut self, x: usize, y: usize) {
+        self.arr[x * self.size.0 + y] = true;
         self.stuck.push((x, y));
     }
 
@@ -55,33 +64,15 @@ impl Life {
             .join("\n")
     }
 
-    fn neighbors(x: usize, y: usize) -> Vec<(usize, usize)> {
-        let mut n = Vec::new();
-        if x != 0 {
-            if y != 0 {
-                n.push((x - 1, y - 1));
-            }
-            n.push((x - 1, y));
-            if y != 99 {
-                n.push((x - 1, y + 1));
-            }
-        }
-        if y != 0 {
-            n.push((x, y - 1));
-        }
-        if y != 99 {
-            n.push((x, y + 1));
-        }
-        if x != 99 {
-            if y != 0 {
-                n.push((x + 1, y - 1));
-            }
-            n.push((x + 1, y));
-            if y != 99 {
-                n.push((x + 1, y + 1));
-            }
-        }
-        n
+    fn neighbors(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
+        vec![(x - 1, y - 1),
+             (x - 1, y),
+             (x - 1, y + 1),
+             (x, y - 1),
+             (x, y + 1),
+             (x + 1, y - 1),
+             (x + 1, y),
+             (x + 1, y + 1)]
     }
 
     fn lcount(&self) -> usize {
@@ -96,20 +87,34 @@ impl FromStr for Life {
     type Err = ();
 
     fn from_str(data: &str) -> Result<Life, ()> {
-        let mut life = Life::new();
-        {
-            for (l, c) in data.lines()
-                              .enumerate()
-                              .flat_map(move |(l, s)| {
-                                  s.chars()
-                                   .enumerate()
-                                   .filter(|&(_, z)| z == '#')
-                                   .map(move |(c, _)| (l, c))
-                              }) {
-                life.arr[l * life.size.0 + c] = true;
-            }
+        let mut buff = vec![false; data.len()];
+
+        let mut lines = data.lines();
+        let x = lines.next().map_or(0, str::len);
+        if !lines.all(|s| s.len() == x) {
+            return Err(());
         }
-        Ok(life)
+        let mut y = 0;
+
+        for index in data.lines()
+                         .inspect(|_| y = y + 1)
+                         .enumerate()
+                         .flat_map(|(l, s)| {
+                             s.chars()
+                              .enumerate()
+                              .filter(|&(_, z)| z == '#')
+                              .map(move |(c, _)| l * s.len() + c)
+                         }) {
+            buff[index] = true;
+        }
+
+        Ok(Life {
+            arr: {
+                buff.resize(x * y, false);
+                buff.into_boxed_slice()
+            },
+            ..Life::new(x, y)
+        })
     }
 }
 
@@ -123,28 +128,25 @@ impl Iterator for Life {
     type Item = Life;
 
     fn next(&mut self) -> Option<Life> {
-        let mut next = [false; 100 * 100];
+        let mut next = vec![false; self.size.0 * self.size.1].into_boxed_slice();
 
-        for x in 0..100 {
-            for y in 0..100 {
-                let count = Life::neighbors(x, y)
+        for x in 0..self.size.0 {
+            for y in 0..self.size.1 {
+                let count = self.neighbors(x, y)
                                 .into_iter()
-                                .map(|(x, y)| {
-                                    let b = self.arr.get(x * self.size.0 + y);
-                                    b.unwrap_or(&false).to_owned()
-                                })
+                                .map(|(x, y)| self.get(x, y).unwrap_or(false))
                                 .filter(|b| *b == true)
                                 .count();
                 match (self.arr[x * self.size.0 + y], count) {
-                    (true, 2) | (true, 3) => next[x * 100 + y] = true,
-                    (true, _) => next[x * 100 + y] = false,
-                    (false, 3) => next[x * 100 + y] = true,
-                    (false, _) => next[x * 100 + y] = false,
+                    (true, 2) | (true, 3) => next[x * self.size.0 + y] = true,
+                    (true, _) => next[x * self.size.0 + y] = false,
+                    (false, 3) => next[x * self.size.0 + y] = true,
+                    (false, _) => next[x * self.size.0 + y] = false,
                 }
             }
         }
         for &(x, y) in &self.stuck {
-            next[x * 100 + y] = true;
+            next[x * self.size.0 + y] = true;
         }
 
         mem::swap(&mut self.arr, &mut next);
@@ -154,5 +156,36 @@ impl Iterator for Life {
             arr: next,
             stuck: self.stuck.clone(),
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Life;
+    const EXAMPLE_DATA: [&'static str; 6] = [".#.#.#", "...##.", "#....#",
+                                             "..#...", "#.#..#", "####.."];
+
+    #[test]
+    fn examples_1() {
+        let life = EXAMPLE_DATA.join("\n").parse::<Life>().unwrap();
+        let lcount = life.inspect(|l| println!("\n{}", l))
+                         .nth(4)
+                         .unwrap()
+                         .lcount();
+        assert_eq!(lcount, 4);
+    }
+
+    #[test]
+    fn examples_2() {
+        let mut life = EXAMPLE_DATA.join("\n").parse::<Life>().unwrap();
+        life.stick(0, 0);
+        life.stick(0, 5);
+        life.stick(5, 0);
+        life.stick(5, 5);
+        let lcount = life.inspect(|l| println!("\n{}", l))
+                         .nth(5)
+                         .unwrap()
+                         .lcount();
+        assert_eq!(lcount, 17);
     }
 }
