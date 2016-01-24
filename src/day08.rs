@@ -1,6 +1,9 @@
+use std::collections::VecDeque;
+use std::iter;
+use std::char;
+
 extern crate itertools;
 use self::itertools::{Itertools, Unfold};
-use std::iter;
 
 const DATA: &'static str = include_str!("../data/input_8.txt");
 
@@ -12,8 +15,8 @@ pub fn main() -> Vec<String> {
 
 fn part1(input: &str) -> Result<usize, &str> {
     // chars().count() instead of len() becuase we want the character count not the byte length
-    // and decode of hex escapes produce 8-bit codepoints of some sort that become multi-byte
-    // sequences in a UTF-8 string
+    // and decode of hex escapes produce code points above 127 that become multi-byte sequences
+    // in a UTF-8 string
     input.lines()
          .map(|s| decode(s).map(|d| s.chars().count() - d.chars().count()))
          .collect::<Result<Vec<_>, _>>()
@@ -24,7 +27,9 @@ fn part1(input: &str) -> Result<usize, &str> {
 }
 
 fn part2(input: &str) -> usize {
-    input.lines().map(|s| encode(s).chars().count() - s.chars().count()).sum()
+    input.lines()
+         .map(|s| encode(s).chars().count() - s.chars().count())
+         .sum()
 }
 
 fn decode(input: &str) -> Result<String, &str> {
@@ -45,17 +50,10 @@ fn decode(input: &str) -> Result<String, &str> {
                     match it.next() {
                         Some(c @ '\\') | Some(c @ '"') => Some(Ok(c)),
                         Some('x') => {
-                            let a = match it.next() {
-                                Some(c @ '0'...'9') => Ok(c as u8 - '0' as u8),
-                                Some(c @ 'a'...'f') => Ok(c as u8 - 'a' as u8 + 10),
-                                _ => Err("invalid char in hex escape"),
-                            };
-                            let b = match it.next() {
-                                Some(c @ '0'...'9') => Ok(c as u8 - '0' as u8),
-                                Some(c @ 'a'...'f') => Ok(c as u8 - 'a' as u8 + 10),
-                                _ => Err("invalid char in hex escape"),
-                            };
-                            Some(a.and_then(|a| b.map(|b| (16 * a + b) as char)))
+                            let a = it.next().and_then(|c| c.to_digit(16));
+                            let b = it.next().and_then(|c| c.to_digit(16));
+                            Some(a.and_then(|a| b.and_then(|b| char::from_u32(16 * a + b)))
+                                  .ok_or("error in hex escape"))
                         }
                         _ => Some(Err("invalid escape")),
                     }
@@ -70,35 +68,25 @@ fn decode(input: &str) -> Result<String, &str> {
 }
 
 fn encode(input: &str) -> String {
-    let escaped = Unfold::new((input.chars(), Vec::<char>::new()), |state| {
+    let escaped = Unfold::new((input.chars(), VecDeque::<char>::new()), |state| {
         let (ref mut it, ref mut backlog) = *state;
 
-        backlog.pop().or_else(|| {
+        backlog.pop_front().or_else(|| {
             match it.next() {
                 Some('\\') => {
-                    backlog.push('\\');
+                    backlog.push_back('\\');
                     Some('\\')
                 }
                 Some('"') => {
-                    backlog.push('"');
+                    backlog.push_back('"');
                     Some('\\')
                 }
                 // Not really needed for part 2, but why not
                 // hex encode to 7-bit clean ASCII
                 Some(c) if c > 127 as char => {
-                    let a = match c as u8 >> 4 {
-                        n @ 0...9 => (n + '0' as u8) as char,
-                        n @ 0xa...0xf => ((n - 0xa) + 'a' as u8) as char,
-                        _ => unreachable!(),
-                    };
-                    let b = match c as u8 & 0x0f {
-                        n @ 0...9 => (n + '0' as u8) as char,
-                        n @ 0xa...0xf => ((n - 0xa) + 'a' as u8) as char,
-                        _ => unreachable!(),
-                    };
-                    backlog.push(b);
-                    backlog.push(a);
-                    backlog.push('x');
+                    for c in format!("x{:x}", c as u32).chars() {
+                        backlog.push_back(c);
+                    }
                     Some('\\')
                 }
                 Some(c) => Some(c),
@@ -117,17 +105,23 @@ fn encode(input: &str) -> String {
 mod test {
     use super::{decode, encode, part1, part2};
 
+    const EXAMPLE_DATA: [&'static str; 4] = [r#""""#, r#""abc""#, r#""aaa\"aaa""#, r#""\x27""#];
+
     #[test]
-    fn test_day8() {
-        assert_eq!(decode(r#""Hello""#), Ok(r"Hello".to_owned()));
-        assert_eq!(decode(r#""\\""#), Ok(r"\".to_owned()));
-        assert_eq!(decode(r#""\"""#), Ok(r#"""#.to_owned()));
-        assert_eq!(decode(r#""\x27""#), Ok("'".to_owned()));
-        assert_eq!(part1(&([r#""""#, r#""abc""#, r#""aaa\"aaa""#, r#""\x27""#].join("\n"))),
-                   Ok(12));
-        assert_eq!(part2(&([r#""""#, r#""abc""#, r#""aaa\"aaa""#, r#""\x27""#].join("\n"))),
-                   19);
-        assert_eq!(decode(r#""\xbb""#), Ok("\u{bb}".to_owned()));
-        assert_eq!(encode("\u{bb}"), r#""\xbb""#);
+    fn examples_1() {
+        assert_eq!(decode(EXAMPLE_DATA[0]).map(|s| s.chars().count()), Ok(0));
+        assert_eq!(decode(EXAMPLE_DATA[1]).map(|s| s.chars().count()), Ok(3));
+        assert_eq!(decode(EXAMPLE_DATA[2]).map(|s| s.chars().count()), Ok(7));
+        assert_eq!(decode(EXAMPLE_DATA[3]).map(|s| s.chars().count()), Ok(1));
+        assert_eq!(part1(&EXAMPLE_DATA.join("\n")), Ok(12));
+    }
+
+    #[test]
+    fn examples_2() {
+        assert_eq!(encode(EXAMPLE_DATA[0]).chars().count(), 6);
+        assert_eq!(encode(EXAMPLE_DATA[1]).chars().count(), 9);
+        assert_eq!(encode(EXAMPLE_DATA[2]).chars().count(), 16);
+        assert_eq!(encode(EXAMPLE_DATA[3]).chars().count(), 11);
+        assert_eq!(part2(&EXAMPLE_DATA.join("\n")), 19);
     }
 }

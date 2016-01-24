@@ -13,32 +13,42 @@ pub fn main() -> Vec<String> {
 
 fn strbump(old: &str) -> String {
     let mut v = old.chars()
-       .rev()
-       .scan(1, |carry, c| {
-           let old = (c as u8) - ('a' as u8);
-           let next = (old + *carry) % 26;
-           if next < old {
-               *carry = 1;
-           } else {
-               *carry = 0;
-           }
-           Some((next + ('a' as u8)))
-       })
-       .collect::<Vec<_>>();
-       v.reverse();
-       unsafe { String::from_utf8_unchecked(v) }
+                   .rev()
+                   .scan(1, |carry, c| {
+                       let old = (c as u8) - ('a' as u8);
+                       let next = (old + *carry) % 26;
+                       if next < old {
+                           *carry = 1;
+                       } else {
+                           *carry = 0;
+                       }
+                       Some(next + ('a' as u8))
+                   })
+                   .collect::<Vec<_>>();
+    v.reverse();
+    unsafe { String::from_utf8_unchecked(v) }
 }
 
 fn has_straight(input: &str) -> bool {
-    input.as_bytes().windows(3).any(|w| w[0] + 1 == w[1] && w[1] + 1 == w[2])
+    input.chars()
+         .collect::<Vec<_>>()
+         .windows(3)
+         .any(|w| (w[0] as u32 + 1 == w[1] as u32) && (w[1] as u32 + 1 == w[2] as u32))
 }
 
 fn no_confusing_letters(input: &str) -> bool {
-    input.chars().any(|c| c == 'i' || c == 'l' || c == 'o').not()
+    input.chars()
+         .any(|c| c == 'i' || c == 'l' || c == 'o')
+         .not()
 }
 
 fn has_two_pairs(input: &str) -> bool {
-    input.as_bytes().windows(2).filter(|w| w[0] == w[1]).unique().count() >= 2
+    input.chars()
+         .collect::<Vec<_>>()
+         .windows(2)
+         .filter(|w| w[0] == w[1])
+         .unique()
+         .count() >= 2
 }
 
 fn next_password(passwd: &str) -> String {
@@ -51,17 +61,15 @@ fn next_password(passwd: &str) -> String {
 
 #[cfg(test)]
 mod test {
-    use super::{strbump, has_straight, next_password};
+    use super::{has_straight, no_confusing_letters, has_two_pairs, next_password};
 
     #[test]
-    fn test_strbmp() {
-        assert_eq!(strbump("xx"), "xy");
-        assert_eq!(strbump("xy"), "xz");
-        assert_eq!(strbump("xz"), "ya");
-        assert_eq!(strbump("ya"), "yb");
-        assert_eq!(has_straight("zabc"), true);
-        assert_eq!(has_straight("zcde"), true);
-        assert_eq!(has_straight("aabd"), false);
+    fn examples() {
+        assert_eq!(has_straight("hijklmmn"), true);
+        assert_eq!(no_confusing_letters("hijklmmn"), false);
+        assert_eq!(has_straight("abbceffg"), false);
+        assert_eq!(has_two_pairs("abbceffg"), true);
+        assert_eq!(has_two_pairs("abbcegjk"), false);
         assert_eq!(next_password("abcdefgh"), "abcdffaa");
         assert_eq!(next_password("ghijklmn"), "ghjaabcc");
     }

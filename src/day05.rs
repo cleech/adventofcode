@@ -1,5 +1,3 @@
-use std::str;
-
 const DATA: &'static str = include_str!("../data/input_5.txt");
 
 pub fn main() -> Vec<String> {
@@ -20,16 +18,18 @@ fn nice(s: &str) -> bool {
          .count() >= 3
     };
     let has_doubles = |s: &str| {
-        s.as_bytes()
+        s.chars()
+         .collect::<Vec<_>>()
          .windows(2)
          .any(|w| w[0] == w[1])
     };
     let has_bad_pairs = |s: &str| {
-        s.as_bytes()
+        s.chars()
+         .collect::<Vec<_>>()
          .windows(2)
          .any(|w| {
-             match unsafe { str::from_utf8_unchecked(w) } {
-                 "ab" | "cd" | "pq" | "xy" => true,
+             match w {
+                 ['a', 'b'] | ['c', 'd'] | ['p','q'] | ['x', 'y'] => true,
                  _ => false,
              }
          })
@@ -45,7 +45,7 @@ fn nice_count(input: &str) -> usize {
 
 fn nicer(s: &str) -> bool {
     let has_double_pairs = |s: &str| {
-        let bs = s.as_bytes();
+        let bs = s.chars().collect::<Vec<_>>();
         (0..bs.len() - 3).any(|n| {
             bs[n + 2..]
                 .windows(2)
@@ -53,7 +53,8 @@ fn nicer(s: &str) -> bool {
         })
     };
     let has_sandwich = |s: &str| {
-        s.as_bytes()
+        s.chars()
+         .collect::<Vec<_>>()
          .windows(3)
          .any(|w| w[0] == w[2])
     };
@@ -71,7 +72,7 @@ mod test {
     use super::{nice, nicer};
 
     #[test]
-    fn test_nice_string() {
+    fn examples_1() {
         assert_eq!(nice("ugknbfddgicrmopn"), true);
         assert_eq!(nice("aaa"), true);
         assert_eq!(nice("jchzalrnumimnmhp"), false);
@@ -80,7 +81,7 @@ mod test {
     }
 
     #[test]
-    fn test_nicer_string() {
+    fn examples_2() {
         assert_eq!(nicer("qjhvhtzxzqqjkmpb"), true);
         assert_eq!(nicer("xxyxx"), true);
         assert_eq!(nicer("uurcxstgmygtbstg"), false);
