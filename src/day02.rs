@@ -52,13 +52,13 @@ mod test {
     use super::{paper, ribbon};
 
     #[test]
-    fn test_paper() {
+    fn examples_1() {
         assert_eq!(paper("2x3x4"), Ok(58));
         assert_eq!(paper("1x1x10"), Ok(43));
     }
 
     #[test]
-    fn test_ribbon() {
+    fn examples_2() {
         assert_eq!(ribbon("2x3x4"), Ok(34));
         assert_eq!(ribbon("1x1x10"), Ok(14));
     }

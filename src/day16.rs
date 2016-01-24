@@ -1,9 +1,12 @@
 use std::str;
 use std::str::FromStr;
 use std::collections::HashMap;
-use nom::{IResult, is_alphabetic, is_digit};
+
+extern crate nom;
+use self::nom::{IResult, is_alphabetic, is_digit};
 
 const DATA: &'static str = include_str!("../data/input_16.txt");
+
 const MFCSAM: [&'static str; 10] = ["children: 3",
                                     "cats: 7",
                                     "samoyeds: 2",
@@ -16,7 +19,7 @@ const MFCSAM: [&'static str; 10] = ["children: 3",
                                     "perfumes: 1"];
 
 pub fn main() -> Vec<String> {
-    vec![format!("{:?}", find_aunt(&filter_1)), format!("{:?}", find_aunt(&filter_2))]
+    vec![format!("{}", find_aunt(&filter_1)[0]), format!("{}", find_aunt(&filter_2)[0])]
 }
 
 fn filter_1(sue: &Aunt, compound: &(String, u32)) -> bool {
@@ -42,7 +45,9 @@ fn filter_2(sue: &Aunt, compound: &(String, u32)) -> bool {
 fn find_aunt<F>(f: &F) -> Vec<u32>
     where F: Fn(&Aunt, &(String, u32)) -> bool
 {
-    let mut aunt_sues = DATA.lines().filter_map(|line| Aunt::from_str(line).ok()).collect::<Vec<_>>();
+    let mut aunt_sues = DATA.lines()
+                            .filter_map(|line| line.parse::<Aunt>().ok())
+                            .collect::<Vec<_>>();
     for c in MFCSAM.iter().map(|l| compound(l.as_bytes())) {
         if let IResult::Done(_, compound) = c {
             aunt_sues = aunt_sues.into_iter()
@@ -103,3 +108,5 @@ impl FromStr for Aunt {
         }
     }
 }
+
+// no example solutions for this one

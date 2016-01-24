@@ -1,4 +1,4 @@
-use std::str;
+use std::str::FromStr;
 
 const DATA: &'static str = include_str!("../data/input_6.txt");
 
@@ -20,7 +20,7 @@ fn doit<F, L>(f: F, state: &mut [[L; 1000]; 1000], a: (usize, usize), b: (usize,
 
 struct Coord((usize, usize), (usize, usize));
 
-impl str::FromStr for Coord {
+impl FromStr for Coord {
     type Err = &'static str;
 
     fn from_str(line: &str) -> Result<Coord, &'static str> {
@@ -43,7 +43,7 @@ enum Cmnd {
     Toggle((usize, usize), (usize, usize)),
 }
 
-impl str::FromStr for Cmnd {
+impl FromStr for Cmnd {
     type Err = &'static str;
 
     fn from_str(line: &str) -> Result<Cmnd, &'static str> {
@@ -121,15 +121,15 @@ mod test {
     use super::{light_show, bright_show};
 
     #[test]
-    fn test_light_show() {
-        assert_eq!(light_show("turn on 0,0 through 999,999"), 1000 * 1000);
-        assert_eq!(light_show("toggle 0,0 through 999,0"), 1000);
+    fn examples_1() {
+        assert_eq!(light_show("turn on 0,0 through 999,999"), 1_000_000);
+        assert_eq!(light_show("toggle 0,0 through 999,0"), 1_000);
         assert_eq!(light_show("turn off 499,499 through 500,500"), 0);
     }
 
     #[test]
-    fn test_bright_show() {
+    fn examples_2() {
         assert_eq!(bright_show("turn on 0,0 through 0,0"), 1);
-        assert_eq!(bright_show("toggle 0,0 through 999,999"), 2 * 1000 * 1000);
+        assert_eq!(bright_show("toggle 0,0 through 999,999"), 2_000_000);
     }
 }

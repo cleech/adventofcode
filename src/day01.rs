@@ -6,18 +6,22 @@ pub fn main() -> Vec<String> {
     vec![s1.to_string(), s2.to_string()]
 }
 
+// translate input characters to a floor change (+/- 1)
 fn instruction_map(c: char) -> i32 {
     match c {
         '(' => 1,
         ')' => -1,
-        _ => panic!("invalid input"),
+        _ => 0,
     }
 }
 
+// find final floor, just the sum of the directions
 fn floor_from_instructions(input: &str) -> i32 {
     input.chars().map(instruction_map).sum()
 }
 
+// use scan to track intermediate values while summing
+// then search for the desired floor with position
 fn first_instruction_to_reach(input: &str, target_floor: i32) -> Option<usize> {
     input.chars()
          .scan(0, |floor, c| {
@@ -36,7 +40,7 @@ mod test {
     use super::{floor_from_instructions, first_instruction_to_reach};
 
     #[test]
-    fn test_floor_from_inst() {
+    fn examples_1() {
         assert_eq!(floor_from_instructions("(())"), 0);
         assert_eq!(floor_from_instructions("()()"), 0);
         assert_eq!(floor_from_instructions("((("), 3);
@@ -49,7 +53,7 @@ mod test {
     }
 
     #[test]
-    fn test_first_inst_to_reach() {
+    fn examples_2() {
         assert_eq!(first_instruction_to_reach(")", -1), Some(1));
         assert_eq!(first_instruction_to_reach("()())", -1), Some(5));
     }

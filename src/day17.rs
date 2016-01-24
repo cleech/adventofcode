@@ -14,6 +14,30 @@ pub fn main() -> Vec<String> {
          }]
 }
 
+#[cfg(test)]
+mod test {
+    use super::PowerSet;
+    const EXAMPLE_DATA: [u32; 5] = [20, 15, 10, 5, 5];
+
+    #[test]
+    fn examples_1() {
+        let data = &EXAMPLE_DATA;
+        let ps = PowerSet::with_prune_condition(data, |ss| ss.iter().sum::<u32>() > 25);
+        let soln = ps.filter(|ss| ss.iter().sum::<u32>() == 25).count();
+        assert_eq!(soln, 4);
+    }
+
+    #[test]
+    fn examples_2() {
+        let data = &EXAMPLE_DATA;
+        let ps = PowerSet::with_prune_condition(data, |ss| ss.iter().sum::<u32>() > 25);
+        let v = ps.filter(|ss| ss.iter().sum::<u32>() == 25).collect::<Vec<_>>();
+        let min = v.iter().map(|ss| ss.len()).min().unwrap();
+        let soln = v.iter().filter(|ss| ss.len() == min).count();
+        assert_eq!(soln, 3);
+    }
+}
+
 struct PowerSet<'a, T>
     where T: 'a + Copy
 {

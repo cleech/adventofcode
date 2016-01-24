@@ -152,7 +152,7 @@ mod test {
     use super::{Machine, parse_program};
 
     #[test]
-    fn example() {
+    fn examples() {
         let source = ["inc a", "jio a, +2", "tpl a", "inc a"].join("\n");
         let instructions = parse_program(&source).unwrap();
         let mut machine = Machine::new();

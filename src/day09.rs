@@ -80,7 +80,7 @@ impl RouteMap {
         let mut cities = HashSet::new();
 
         for line in input.lines() {
-            match Route::from_str(line) {
+            match line.parse::<Route>() {
                 Ok(r) => {
                     cities.insert(r.cities.0.clone());
                     cities.insert(r.cities.1.clone());
@@ -121,23 +121,23 @@ impl RouteMap {
 
 #[cfg(test)]
 mod test {
-    use std::str::FromStr;
-    use super::{Route, RouteMap};
+    use super::RouteMap;
+
+    const EXAMPLE_DATA: [&'static str; 3] = ["London to Dublin = 464",
+                                             "London to Belfast = 518",
+                                             "Dublin to Belfast = 141"];
 
     #[test]
-    fn test_route_eq() {
-        assert_eq!(Route::from_str("Chicago to Detroit = 282"),
-                   Route::from_str("Detroit to Chicago = 282"));
+    fn examples_1() {
+        let map = RouteMap::build(&EXAMPLE_DATA.join("\n")).unwrap();
+        let d = map.find_shortest_route();
+        assert_eq!(d, Some(605));
     }
 
     #[test]
-    fn test_day9() {
-        let routes = ["London to Dublin = 464",
-                      "London to Belfast = 518",
-                      "Dublin to Belfast = 141"]
-                         .join("\n");
-        let map = RouteMap::build(&routes).unwrap();
-        let d = map.find_shortest_route();
-        assert_eq!(d, Some(605));
+    fn examples_2() {
+        let map = RouteMap::build(&EXAMPLE_DATA.join("\n")).unwrap();
+        let d = map.find_longest_route();
+        assert_eq!(d, Some(982));
     }
 }

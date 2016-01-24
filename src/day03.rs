@@ -43,14 +43,14 @@ mod test {
     use super::multi_santa;
 
     #[test]
-    fn test_house_count() {
+    fn examples_1() {
         assert_eq!(multi_santa(">", 1), 2);
         assert_eq!(multi_santa("^>v<", 1), 4);
         assert_eq!(multi_santa("^v^v^v^v^v", 1), 2);
     }
 
     #[test]
-    fn test_robo_santa() {
+    fn examples_2() {
         assert_eq!(multi_santa("^v", 2), 3);
         assert_eq!(multi_santa("^>v<", 2), 3);
         assert_eq!(multi_santa("^v^v^v^v^v", 2), 11);

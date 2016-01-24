@@ -1,8 +1,8 @@
-const DATA: &'static str = include_str!("../data/input_24.txt");
-
 use std::cmp;
 use std::{usize, u64};
 use std::cell::Cell;
+
+const DATA: &'static str = include_str!("../data/input_24.txt");
 
 pub fn main() -> Vec<String> {
     if let Ok(mut v) = DATA.lines()
@@ -28,11 +28,10 @@ fn min_qe(data: &[u64], weight: u64) -> Option<u64> {
         (ss.iter().sum::<u64>() > weight) || ((ss.len(), ss.iter().product()) > best.get())
     };
     let ps = PowerSet::with_prune_condition(&data, stop);
-    return ps.filter(|ss| ss.iter().sum::<u64>() == weight)
-             .map(|ss| (ss.len(), ss.iter().product::<u64>()))
-             .inspect(|&k| best.set(cmp::min(best.get(), k)))
-             .min()
-             .map(|k| k.1);
+    let solutions = ps.filter(|ss| ss.iter().sum::<u64>() == weight)
+                      .map(|ss| (ss.len(), ss.iter().product::<u64>()))
+                      .inspect(|&k| best.set(cmp::min(best.get(), k)));
+    solutions.min().map(|k| k.1)
 }
 
 #[cfg(test)]
@@ -40,13 +39,13 @@ mod test {
     use super::min_qe;
 
     #[test]
-    fn example_1() {
+    fn examples_1() {
         let data = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
         assert_eq!(min_qe(&data, data.iter().sum::<u64>() / 3), Some(99));
     }
 
     #[test]
-    fn example_2() {
+    fn examples_2() {
         let data = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
         assert_eq!(min_qe(&data, data.iter().sum::<u64>() / 4), Some(44));
     }

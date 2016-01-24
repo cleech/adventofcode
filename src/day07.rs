@@ -124,7 +124,7 @@ impl FromStr for Circuit {
         let cache = HashMap::new();
 
         for line in input.lines() {
-            if let Ok(gate) = Gate::from_str(line) {
+            if let Ok(gate) = line.parse::<Gate>() {
                 circuit.insert(gate.out(), gate);
             } else {
                 return Err("gate parse error");
@@ -163,7 +163,7 @@ impl Circuit {
 }
 
 fn run_circuit(input: &str, target: &str) -> Option<u16> {
-    if let Ok(mut c) = Circuit::from_str(input) {
+    if let Ok(mut c) = input.parse::<Circuit>() {
         c.eval(&Source::Wire(target.to_owned()))
     } else {
         None
@@ -171,7 +171,7 @@ fn run_circuit(input: &str, target: &str) -> Option<u16> {
 }
 
 fn part2(input: &str, target: &str, force: &str, v: u16) -> Option<u16> {
-    if let Ok(mut c) = Circuit::from_str(input) {
+    if let Ok(mut c) = input.parse::<Circuit>() {
         c.force(&Source::Wire(force.to_owned()), v);
         c.eval(&Source::Wire(target.to_owned()))
     } else {
@@ -189,11 +189,10 @@ pub fn main() -> Vec<String> {
 
 #[cfg(test)]
 mod test {
-    use std::str::FromStr;
     use super::{Circuit, Source};
 
     #[test]
-    fn test_circuit() {
+    fn examples() {
         let cs = ["123 -> x",
                   "456 -> y",
                   "x AND y -> d",
@@ -203,7 +202,7 @@ mod test {
                   "NOT x -> h",
                   "NOT y -> i"]
                      .join("\n");
-        let mut c = Circuit::from_str(&cs).unwrap();
+        let mut c = cs.parse::<Circuit>().unwrap();
         assert_eq!(c.eval(&Source::Wire("d".to_owned())), Some(72));
         assert_eq!(c.eval(&Source::Wire("e".to_owned())), Some(507));
         assert_eq!(c.eval(&Source::Wire("f".to_owned())), Some(492));

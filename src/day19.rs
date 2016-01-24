@@ -6,10 +6,13 @@ use self::itertools::Itertools;
 const DATA: &'static str = include_str!("../data/input_19.txt");
 
 pub fn main() -> Vec<String> {
-    let ctx = Context::from_str(DATA).unwrap();
-    let s1 = ctx.all_replacements().count().to_string();
-    let s2 = ctx.find_production(&ctx.medicine, 0).unwrap().to_string();
-    vec![s1, s2]
+    if let Ok(ctx) = DATA.parse::<Context>() {
+        let s1 = ctx.all_replacements().count().to_string();
+        let s2 = ctx.find_production(&ctx.medicine, 0).unwrap().to_string();
+        vec![s1, s2]
+    } else {
+        vec![]
+    }
 }
 
 #[derive(Debug)]
@@ -96,5 +99,36 @@ impl<'a> SingleReplacements for &'a str {
             results.push(string);
         }
         results
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Context;
+
+    #[test]
+    fn examples_1() {
+        let example = "H => HO\nH => OH\nO => HH\n\nHOH";
+        let ctx = example.parse::<Context>().ok();
+        let soln = ctx.map(|ctx| ctx.all_replacements().count());
+        assert_eq!(soln, Some(4));
+
+        let example = "H => HO\nH => OH\nO => HH\n\nHOHOHO";
+        let ctx = example.parse::<Context>().ok();
+        let soln = ctx.map(|ctx| ctx.all_replacements().count());
+        assert_eq!(soln, Some(7));
+    }
+
+    #[test]
+    fn examples_2() {
+        let example = "e => H\ne => O\nH => HO\nH => OH\nO => HH\n\nHOH";
+        let ctx = example.parse::<Context>().ok();
+        let soln = ctx.and_then(|ctx| ctx.find_production(&ctx.medicine, 0));
+        assert_eq!(soln, Some(3));
+
+        let example = "e => H\ne => O\nH => HO\nH => OH\nO => HH\n\nHOHOHO";
+        let ctx = example.parse::<Context>().ok();
+        let soln = ctx.and_then(|ctx| ctx.find_production(&ctx.medicine, 0));
+        assert_eq!(soln, Some(6));
     }
 }

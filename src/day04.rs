@@ -30,7 +30,8 @@ fn find_number(key: &str, zeros: usize) -> u32 {
 
     (1..)
         .find(|n| {
-            // it would be nice if I could just roll-back to this state instead of inputting the key each time
+            // it would be nice if I could just roll-back to this state
+            // instead of inputting the key each time
             md5.reset();
             md5.input(k);
 
@@ -47,18 +48,11 @@ fn find_number(key: &str, zeros: usize) -> u32 {
 
 #[cfg(test)]
 mod test {
-    extern crate test;
-    use self::test::Bencher;
-    use super::{find_number, DATA};
+    use super::find_number;
 
     #[test]
-    fn test_find_number() {
+    fn examples() {
         assert_eq!(find_number("abcdef", 5), 609043);
         assert_eq!(find_number("pqrstuv", 5), 1048970);
-    }
-
-    #[bench]
-    fn bench_day4(b: &mut Bencher) {
-        b.iter(|| super::find_number(DATA.trim(), 5));
     }
 }

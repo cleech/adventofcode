@@ -1,5 +1,5 @@
-use std::cmp::{max, min};
 use std::isize;
+use std::cmp::{max, min};
 
 const DATA: &'static str = include_str!("../data/input_22.txt");
 
@@ -277,9 +277,47 @@ fn find_best_solution(h: &Character, b: &Character, hard: isize, mut best: isize
 
             let r = find_best_solution(&hero, &boss, hard, best);
             if let Some(new_best) = r {
-               best = min(best, new_best);
+                best = min(best, new_best);
             }
             r
         })
-        .min()
+    .min()
+}
+
+#[cfg(test)]
+mod test {
+    use std::isize;
+    use super::{Character, find_best_solution};
+
+    #[test]
+    fn examples_1() {
+        let wizard = Character {
+            hp: 10,
+            mana: 250,
+            ..Character::new()
+        };
+        let boss = Character {
+            hp: 13,
+            damage: 8,
+            ..Character::new()
+        };
+        // Poison, Magic Missile
+        assert_eq!(find_best_solution(&wizard, &boss, 0, isize::MAX), Some(226));
+    }
+
+    #[test]
+    fn examples_2() {
+        let wizard = Character {
+            hp: 10,
+            mana: 250,
+            ..Character::new()
+        };
+        let boss = Character {
+            hp: 14,
+            damage: 8,
+            ..Character::new()
+        };
+        // Recharge, Shield, Drain, Poison, Magic Missile
+        assert_eq!(find_best_solution(&wizard, &boss, 0, isize::MAX), Some(641));
+    }
 }

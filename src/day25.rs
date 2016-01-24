@@ -70,22 +70,21 @@ mod test {
     }
 }
 
-// this was my original iterator approach, much slower but generates all of the intermediate values
-#[cfg(day25_iterator)]
+// this was my original iterator approach
+// much slower but generates all of the intermediate values
 mod iterator {
+    use std::mem;
     use super::{SEED, BASE, MODULUS};
 
+    #[allow(dead_code)]
     struct CodeGen {
-        running: bool,
         last: u64,
     }
 
+    #[allow(dead_code)]
     impl CodeGen {
         fn new() -> CodeGen {
-            CodeGen {
-                running: false,
-                last: SEED,
-            }
+            CodeGen { last: SEED }
         }
     }
 
@@ -93,12 +92,22 @@ mod iterator {
         type Item = u64;
 
         fn next(&mut self) -> Option<u64> {
-            if self.running {
-                self.last = (self.last * BASE) % MODULUS;
-            } else {
-                self.running = true;
-            }
-            Some(self.last)
+            let mut next = self.last * BASE % MODULUS;
+            mem::swap(&mut self.last, &mut next);
+            Some(next)
+        }
+    }
+
+    #[cfg(test)]
+    mod test {
+        use super::CodeGen;
+
+        #[test]
+        fn examples() {
+            let mut codebook = CodeGen::new();
+            assert_eq!(codebook.next(), Some(20151125));
+            assert_eq!(codebook.next(), Some(31916031));
+            assert_eq!(codebook.next(), Some(18749137));
         }
     }
 }

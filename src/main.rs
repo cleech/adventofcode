@@ -4,8 +4,6 @@
 #![feature(slice_patterns)]
 #![feature(advanced_slice_patterns)]
 #![feature(time2)]
-#![cfg_attr(test, feature(test))]
-
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -137,7 +135,7 @@ fn verify_my_answers() {
     assert_eq!(run_one(13).unwrap(), ["733", "725"]);
     assert_eq!(run_one(14).unwrap(), ["2640", "1102"]);
     assert_eq!(run_one(15).unwrap(), ["222870", "117936"]);
-    assert_eq!(run_one(16).unwrap(), ["[40]", "[241]"]);
+    assert_eq!(run_one(16).unwrap(), ["40", "241"]);
     assert_eq!(run_one(17).unwrap(), ["654", "57"]);
     assert_eq!(run_one(18).unwrap(), ["768", "781"]);
     assert_eq!(run_one(19).unwrap(), ["535", "212"]);

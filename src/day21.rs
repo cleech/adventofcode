@@ -144,3 +144,23 @@ fn most_expensive_loss(boss: &Character) -> Option<usize> {
         .map(|e| e.iter().fold(0, |cost, &i| cost + i.cost))
         .max()
 }
+
+#[cfg(test)]
+mod test {
+    use super::Character;
+
+    #[test]
+    fn examples() {
+        let hero = Character {
+            hp: 8,
+            damage: 5,
+            armor: 5,
+        };
+        let boss = Character {
+            hp: 12,
+            damage: 7,
+            armor: 2,
+        };
+        assert_eq!(hero.attack(&boss), true);
+    }
+}

@@ -18,13 +18,13 @@ fn look_and_say(input: &str) -> String {
                                None => None,
                                Some(c) => {
                                    let n = it.take_while_ref(|&next| next == c).count() + 1;
-                                   Some((n as u8, c))
+                                   Some((n, c))
                                }
                            }
                        }) {
         // n should never be more than 3 (just part of how the maths work out)
         // so this is correct as it only ever generates one char
-        raw.push(n + '0' as u8);
+        raw.push(n as u8 + '0' as u8);
         raw.push(c as u8);
     }
     raw.shrink_to_fit();
@@ -43,8 +43,9 @@ fn look_and_say_iterations(input: &str, count: usize) -> String {
 #[cfg(test)]
 mod test {
     use super::look_and_say;
+
     #[test]
-    fn test_look_and_say() {
+    fn examples() {
         assert_eq!(look_and_say("1"), "11");
         assert_eq!(look_and_say("11"), "21");
         assert_eq!(look_and_say("21"), "1211");
